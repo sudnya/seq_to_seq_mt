@@ -78,6 +78,8 @@ def add_decoding (model, input, input_states)
         output_states.append(state)
 
     
-    projection_output = 
+    projection_output = output_states
+
+    return projection_output
 
     
