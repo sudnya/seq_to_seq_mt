@@ -1,8 +1,12 @@
 import tensorflow as tf
 from model import LanguageModel
 from config import Config
+<<<<<<< HEAD
 from encoder import add_embedding, add_encoding
 from decoder import add_decoding
+=======
+from encoder import *
+>>>>>>> aaae89c4038848dfc87ee68d4afacf74ba902bd6
 from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
@@ -17,6 +21,8 @@ class S2SMTModel(LanguageModel):
     def __init__(self):
         self.en_initial_states = None
         self.config = Config()
+        self.add_placeholders()
+
 
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
@@ -32,24 +38,25 @@ class S2SMTModel(LanguageModel):
         if debug:
             num_debug = 1024
             self.en_train = self.en_train[:num_debug]
-            self.en_dev = self.en_dev[:num_debug]
-            self.en_test = self.en_test[:num_debug]
+            self.en_dev   = self.en_dev[:num_debug]
+            self.en_test  = self.en_test[:num_debug]
 
             self.de_train = self.de_train[:num_debug]
-            self.de_dev = self.de_dev[:num_debug]
-            self.de_test = self.de_test[:num_debug]
+            self.de_dev   = self.de_dev[:num_debug]
+            self.de_test  = self.de_test[:num_debug]
 
         self.en_vocab_size = data_loader.en_vocab_size + 1
         self.de_vocab_size = data_loader.de_vocab_size + 1
 
-        self.start_token = self.de_vocab_size
+        self.start_token = self.de_vocab_size - 1
+
 
     def add_placeholders(self):
-        config = self.config
-        self.input_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='input')
-        self.labels_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='labels')
-        self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
-        self.dropout_placeholder = tf.placeholder(config.dtype, name='dropout')
+        self.input_placeholder = 1
+        self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='input')
+        self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='labels')
+        #self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
+        self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
     def add_embedding(self):
         return add_embedding(self, self.input_placeholder)
@@ -68,7 +75,7 @@ class S2SMTModel(LanguageModel):
 
     def add_training_op(self, loss):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
-        train_op = optimizer.minimize(loss)
+        train_op  = optimizer.minimize(loss)
 
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
@@ -103,13 +110,11 @@ class S2SMTModel(LanguageModel):
         return outputs
 
     def add_loss_op(self, pred):
-        batch_size = self.config.batch_size
-        target_labels = tf.reshape(self.labels_placeholder, [batch_size, self.num_steps_placeholder])
-        weights = tf.ones([batch_size, self.num_steps_placeholder])
-        pred_logits = tf.reshape(pred, [batch_size, self.num_steps_placeholder, self.de_vocab_size])
-        loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
-
-        self.sMax = tf.nn.softmax(pred_logits)
+        target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.num_steps_placeholder])
+        weights       = tf.ones([self.config.batch_size, self.num_steps_placeholder])
+        pred_logits   = tf.reshape(pred, [self.config.batch_size, self.num_steps_placeholder, self.de_vocab_size])
+        loss          = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
+        self.sMax     = tf.nn.softmax(pred_logits)
 
         tf.add_to_collection('total_loss', loss)
 
@@ -123,6 +128,7 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
+        #TODO: update self.config.num_steps per minibatch
         pass
 
     def fit(self, sess, input_data, input_labels):
@@ -152,5 +158,38 @@ def generate_text(session, model, config, starting_text='<eos>', stop_length=100
     pass
 
 
-def _test_S2SMTModel():
+def test_S2SMTModel():
     pass
+
+def test_encoder():
+    t_model  = S2SMTModel()
+    t_model.load_data()
+    t_inputs = t_model.add_embedding()
+    t_X      = t_model.add_encoding(t_inputs)
+
+def test_decoder():
+    pass
+
+def run_tests():
+    test_encoder()
+    test_decoder()
+    test_S2SMTModel()
+
+def main():
+    parser = argparse.ArgumentParser(description="Sequence to sequence machine translation model")
+    parser.add_argument("-v", "--verbose", default=False, action="store_true")
+
+    parsedArguments = parser.parse_args()
+    arguments       = vars(parsedArguments)
+    isVerbose       = arguments['verbose']
+
+    if isVerbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
+    run_tests()
+
+
+if __name__ == '__main__':
+    main()

@@ -168,7 +168,7 @@ class DataLoader():
 
         def add_word(self, word, count=1):
             if len(self.word_to_index.keys()) >= self.maxVocabSize:
-                logger.info("Vocab capacity full, not adding new words")
+                logger.debug("Vocab capacity full, not adding new words")
                 return
 
             if word not in self.word_to_index:

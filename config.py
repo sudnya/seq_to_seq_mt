@@ -5,6 +5,7 @@ import numpy as np
 class Config(object):
     """Holds model hyperparams and data information.
     """
+    debug = True
     # encoder
     # best to keep embed size the same as hidden_size for later residuals
     # embed_size = 100
