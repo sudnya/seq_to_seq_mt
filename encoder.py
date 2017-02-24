@@ -41,7 +41,6 @@ def add_encoding_layer(model, inputs, initial_state):
     """
     config = model.config
     inputs = tfdebug(config, inputs, message='ADD ENCODING IN')
-
     state = initial_state
     output = []
 

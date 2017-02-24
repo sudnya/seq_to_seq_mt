@@ -6,6 +6,7 @@ from DataLoader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
 
+
 class S2SMTModel(LanguageModel):
 
     def __init__(self):
@@ -41,43 +42,61 @@ class S2SMTModel(LanguageModel):
         self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
+
+
+    def add_embedding(self):
+        return add_embedding(self, self.input_placeholder)
+
+    def add_encoding(self, inputs):
+        config = self.config
+        initial_states = [tf.zeros([config.batch_size, config.en_hidden_size], dtype=config.dtype) for x in xrange(config.en_layers)]
+        return add_encoding(self, inputs, initial_states)
+
+    def add_decoding(self):
+        """
+            @return (output, final_states)
+        """
+        pass
+
+    def add_attention(self):
+        pass
+
+    def add_training_op(self, loss):
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
+        train_op = optimizer.minimize(loss)
+
+
+    def add_model(self, input_data):
+        """Implements core of model that transforms input_data into predictions.
+        The core transformation for this model which transforms a batch of input
+        data into a batch of predictions.
+
+        Args: input_data: A tensor of shape (batch_size, n_features).
+        Returns: out: A tensor of shape (batch_size, n_classes)
+        """
+        pass
+
+
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
         Args:
           input_batch: A batch of input data.
           label_batch: A batch of label data.
-        Returns:
-          feed_dict: The feed dictionary mapping from placeholders to values.
+        Returns: feed_dict: The feed dictionary mapping from placeholders to values.
         """
         feed_dict = {}
 
         feed_dict[self.input_placeholder] = input_batch
-
         # only in train mode will we have labels provided
         if label_batch is not None:
             feed_dict[self.labels_placeholder] = label_batch
+
         return feed_dict
-
-    def add_model(self, input_data):
-        """Implements core of model that transforms input_data into predictions.
-
-        The core transformation for this model which transforms a batch of input
-        data into a batch of predictions.
-
-        Args:
-          input_data: A tensor of shape (batch_size, n_features).
-        Returns:
-          out: A tensor of shape (batch_size, n_classes)
-        """
-        pass
 
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
-
-        Args:
-          pred: A tensor of shape (batch_size, n_classes)
-        Returns:
-          loss: A 0-d tensor (scalar) output
+        Args: pred: A tensor of shape (batch_size, n_classes)
+        Returns: loss: A 0-d tensor (scalar) output
         """
         targets = [tf.reshape(self.labels_placeholder, [-1])]
         target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.config.num_steps])
@@ -92,28 +111,22 @@ class S2SMTModel(LanguageModel):
         return loss
 
     def run_epoch(self, session, data, train_op=None, verbose=10):
-        """Runs an epoch of training.
-
-        Trains the model for one-epoch.
-
+        """Runs an epoch of training.  Trains the model for one-epoch.
         Args:
           sess: tf.Session() object
           input_data: np.ndarray of shape (n_samples, n_features)
           input_labels: np.ndarray of shape (n_samples, n_classes)
-        Returns:
-          average_loss: scalar. Average minibatch loss of model on epoch.
+        Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
         pass
 
     def fit(self, sess, input_data, input_labels):
         """Fit model on provided data.
-
         Args:
           sess: tf.Session()
           input_data: np.ndarray of shape (n_samples, n_features)
           input_labels: np.ndarray of shape (n_samples, n_classes)
-        Returns:
-          losses: list of loss per epoch
+        Returns: losses: list of loss per epoch
         """
         raise NotImplementedError("Each Model must re-implement this method.")
 
@@ -129,26 +142,6 @@ class S2SMTModel(LanguageModel):
         """
         raise NotImplementedError("Each Model must re-implement this method.")
 
-    def add_embedding(self):
-        return add_embedding(self, self.input_placeholder)
-
-    def add_encoding(self, inputs):
-        if not self.en_initial_states:
-            self.en_initial_states = [tf.zeros([self.config.batch_size, self.config.en_hidden_size], dtype=self.config.dtype) for x in xrange(self.config.en_layers)]
-        return add_encoding(self, inputs, self.en_initial_states)
-
-    def add_decoding(self):
-        """
-            @return (output, final_states)
-        """
-        pass
-
-    def add_attention(self):
-        pass
-
-    def add_training_op(self, loss):
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
-        train_op = optimizer.minimize(loss)
 
 
 def generate_text(session, model, config, starting_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
