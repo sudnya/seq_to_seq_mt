@@ -18,7 +18,7 @@ def add_embedding(model, inputs):
     inputs = tfdebug(config, inputs, message='ADD EMBEDDING IN')
 
     with tf.variable_scope('Embedding'):
-        w2v = tf.get_variable('w2v', [model.en_vocab_size, config.en_hidden_size], initializer=xavier_init)
+        w2v = tf.get_variable('w2v', [model.en_vocab_size, config.hidden_size], initializer=xavier_init)
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
         output = tf.split(output, tf.ones(model.num_steps, dtype=tf.int32), axis=1)
         output = map(tf.squeeze, output)
@@ -41,7 +41,7 @@ def add_encoding_layer(model, inputs, initial_state, layer):
     output = []
 
     with tf.variable_scope('EncodingLayer' + str(layer)):
-        cell = LSTMCell(config.en_hidden_size)
+        cell = LSTMCell(config.hidden_size)
         for step in xrange(model.num_steps):
             state = cell(inputs[step], state)
             output.append(state)
