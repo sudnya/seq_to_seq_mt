@@ -66,7 +66,7 @@ def test_S2SMTModel():
 
 
 def test_encoder():
-    t_model = S2SMTModel()
+    t_model = S2SMTModel(Config)
     t_model.load_data()
 
     ref_num_steps = t_model.config.en_num_steps
@@ -87,7 +87,7 @@ def test_encoder():
     #assert len(f_state) == ref_layer_size
     return t_model, output
 
-def test_decoder():
+def test_decoder(t_model, en_output):
     #ref_num_steps = t_model.config.de_num_steps
     #ref_batch_size = t_model.config.batch_size
 

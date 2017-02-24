@@ -40,6 +40,7 @@ class Config(object):
     source_lang = 'vi'
     target_lang = 'en'
 
+
     # Number of samples to load for training
     # vocab_max_size = 10000
     vocab_max_size = 1000

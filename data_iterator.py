@@ -18,7 +18,7 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
         ret_data[i][:sample_len] = data_slice[i][:sample_len]
         #print "over wrote as ", ret_data[i]
     return ret_data
-        
+
 
 
 def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np.int32):
@@ -47,7 +47,8 @@ def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np
         yield(t_en_batch, t_de_ref_batch, t_de_pred_batch)
     
 
-        
+
+
 def main():
     parser = argparse.ArgumentParser(description="DataIterator")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")
@@ -61,7 +62,7 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    
+
     X_test = []
     Y_test = []
     s_lengths = [int(100*random.random()) for i in xrange(5)]
@@ -71,14 +72,21 @@ def main():
         X_test.append(np.ones(col))
         Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
 
+<<<<<<< HEAD
     batch_size  = 4
     start_token = -999
     pad_token   = -888
     for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, start_token, pad_token)):
         print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
         
+=======
+    #print "X " , X_test
+    batch_size = 4
+    for i, (enc, dec_ref, dec_pred) in enumerate(data_iterator(X_test, Y_test, batch_size)):
+        print "enc \n", enc , " --- \ndec\n", dec
+
+>>>>>>> 264b4a34dab0957c20b00500690a340c4b6e6e75
 
 
 if __name__ == '__main__':
     main()
-    
