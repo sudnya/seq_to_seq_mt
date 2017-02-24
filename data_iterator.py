@@ -43,10 +43,11 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, star
         
         max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
         
-        t_en_batch = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
+        t_en_batch      = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
         t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
-
-        t_de_ref_batch = np.zeros(shape=(batch_size, max_len_for_this_batch))
+        
+        t_de_ref_batch  = np.zeros(shape=(batch_size, max_len_for_this_batch))
+        
         t_de_ref_batch[:, 1:] = t_de_pred_batch[:, :-1]
         t_de_ref_batch[:, 0]  = start_token
 
