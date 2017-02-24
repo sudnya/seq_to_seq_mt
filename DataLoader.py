@@ -23,6 +23,7 @@ class DataLoader():
     def __init__(self, srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest, subSamples, valSamples, testSamples):
         self.vocab_source = self.Vocab(srcV, "source")
         self.vocab_target = self.Vocab(tgtV, "target")
+        #TODO: optimize this - take src, tgt language and infer files accordingly
         
         #Train - src, rev_src, target
         self.src_encoded_train = self.loadEncodings(srcTr, subSamples)
