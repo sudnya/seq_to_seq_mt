@@ -8,12 +8,12 @@ class Config(object):
   # encoder
   # best to keep embed size the same as hidden_size for later residuals
   # embed_size = 100
-  en_hidden_size = 100
+  hidden_size = 100
   en_num_steps   = 20
   en_layers      = 1
 
   # decoder
-  de_hidden_size = 100
+  hidden_size = 100
   de_num_steps   = 20
   de_layers      = 1
 

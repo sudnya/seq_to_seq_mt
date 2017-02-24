@@ -2,6 +2,7 @@ import tensorflow as tf
 from model import LanguageModel
 from config import Config
 from encoder import add_embedding, add_encoding
+from encoder import add_decoding
 from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
@@ -34,8 +35,10 @@ class S2SMTModel(LanguageModel):
             self.de_dev = self.de_dev[:num_debug]
             self.de_test = self.de_test[:num_debug]
 
-        self.en_vocab_size = data_loader.en_vocab_size
-        self.de_vocab_size = data_loader.de_vocab_size
+        self.en_vocab_size = data_loader.en_vocab_size + 1
+        self.de_vocab_size = data_loader.de_vocab_size + 1
+
+        self.start_token = self.de_vocab_size
 
     def add_placeholders(self):
         config = self.config
@@ -49,14 +52,14 @@ class S2SMTModel(LanguageModel):
 
     def add_encoding(self, inputs):
         config = self.config
-        initial_states = [tf.zeros([config.batch_size, config.en_hidden_size], dtype=config.dtype) for x in xrange(config.en_layers)]
+        initial_states = [tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype) for x in xrange(config.en_layers)]
         return add_encoding(self, inputs, initial_states)
 
-    def add_decoding(self):
-        """
-            @return (output, final_states)
-        """
-        pass
+    def add_decoding(self, encode_final_state):
+        config = self.config
+        initial_states = [tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype) for x in xrange(config.de_layers)]
+        initial_states[0] = en_final_state
+        return add_decoding(self, inputs, initial_states)
 
     def add_attention(self):
         pass
@@ -81,7 +84,7 @@ class S2SMTModel(LanguageModel):
 
         return feed_dict
 
-    def add_model(self, input_data):
+    def add_model(self, inputs):
         """Implements core of model that transforms input_data into predictions.
         The core transformation for this model which transforms a batch of input
         data into a batch of predictions.
@@ -89,16 +92,13 @@ class S2SMTModel(LanguageModel):
         Args: input_data: A tensor of shape (batch_size, n_features).
         Returns: out: A tensor of shape (batch_size, n_classes)
         """
-        rnn_outputs = []
-        # (config.dtype)      list (num_steps) x batch_size x hidden_size
-        embeddings = self.add_embedding()
-        with tf.variable_scope('S2SMT') as scope:
-            # output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
-            # states:     (config.dtype)    list (layers) x batch_size x hidden_size
-            en_output, en_states = self.add_encoding(input_data)
-            self.add_decoding()
+        outputs = []
 
-        return rnn_outputs
+        with tf.variable_scope('S2SMT') as scope:
+            en_output, en_final_states = self.add_encoding(self.add_embedding(self.source_placeholder))
+            de_output, de_final_states = self.add_decoding(self.labels_placeholder)
+
+        return outputs
 
     def add_loss_op(self, pred):
         batch_size = self.config.batch_size
@@ -106,7 +106,7 @@ class S2SMTModel(LanguageModel):
         weights = tf.ones([batch_size, self.num_steps_placeholder])
         pred_logits = tf.reshape(pred, [batch_size, self.num_steps_placeholder, self.de_vocab_size])
         loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
-        
+
         self.sMax = tf.nn.softmax(pred_logits)
 
         tf.add_to_collection('total_loss', loss)
