@@ -32,9 +32,9 @@ def _add_projection(model, inputs):
     """
     with tf.variable_scope("ProjectionLayer"): 
         U = tf.get_variable("U", (config.hidden_size, config.de_vocab_size), dtype=tf.float32)
-        b_2 = tf.Variable(tf.zeros(config.de_vocab_size)), dtype=tf.float32) 
+        b_2 = tf.Variable(tf.zeros(config.de_vocab_size), dtype=tf.float32)
 
-        outpus = []
+        outputs = []
 
         for i in range (config.de_num_steps): 
             outputs.append(tf.matmul(inputs[i], U) + b_2)
@@ -74,7 +74,7 @@ def add_decoding(model, inputs, initial_states):
     config = model.config
     output = inputs
 
-    if model.train:
+    if config.train:
         output = add_embedding(model, inputs)
         output.pop()
         token_embedding = tf.ones([config.batch_size, config.hidden_size], dtype=tf.int32) * model.start_token

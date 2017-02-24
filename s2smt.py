@@ -2,6 +2,7 @@ import sys
 import tensorflow as tf
 import numpy as np
 
+
 from data_iterator import data_iterator
 from model import LanguageModel
 from data_loader import DataLoader
@@ -192,6 +193,7 @@ class S2SMTModel(LanguageModel):
         raise NotImplementedError("Each Model must re-implement this method.")
 
 
+
 def translate_text(session, model, config, starting_text='<eos>',
                    stop_length=100, stop_tokens=None, temp=1.0):
     """Generate text from the model.
@@ -240,3 +242,4 @@ def translate_text(session, model, config, starting_text='<eos>',
 
 def translate_sentence(session, model, config, en_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
     pass
+
