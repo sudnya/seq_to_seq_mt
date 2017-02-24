@@ -32,11 +32,17 @@ class S2SMTModel(LanguageModel):
             self.de_dev = self.de_dev[:num_debug]
             self.de_test = self.de_test[:num_debug]
 
+        self.en_vocab_size = data_loader.en_vocab_size
+        self.de_vocab_size = data_loader.de_vocab_size
+
+
+
     def add_placeholders(self):
         self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='input')
         self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
-    
+
+
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
         Args:
@@ -66,7 +72,8 @@ class S2SMTModel(LanguageModel):
           out: A tensor of shape (batch_size, n_classes)
         """
         pass
-    
+
+
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
 
@@ -75,7 +82,17 @@ class S2SMTModel(LanguageModel):
         Returns:
           loss: A 0-d tensor (scalar) output
         """
-        raise NotImplementedError("Each Model must re-implement this method.")
+        targets       = [tf.reshape(self.labels_placeholder, [-1])]
+        target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.config.num_steps])
+        w             = tf.ones([self.config.batch_size, self.config.num_steps])
+        pred_logits   = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
+        
+        loss      = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
+        self.sMax = tf.nn.softmax(f)
+
+        tf.add_to_collection('total_loss', loss)
+        
+        return loss
     
     def run_epoch(self, session, data, train_op=None, verbose=10):
         """Runs an epoch of training.
