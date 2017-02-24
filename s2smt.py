@@ -1,10 +1,19 @@
 import tensorflow as tf
 from model import LanguageModel
 from config import Config
+<<<<<<< HEAD
+from encoder import add_embedding, add_encoding
+from decoder import add_decoding
+=======
 from encoder import *
+>>>>>>> aaae89c4038848dfc87ee68d4afacf74ba902bd6
 from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
+
+def _make_initial_states(config):
+    return (tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
+            tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype))
 
 
 class S2SMTModel(LanguageModel):
@@ -40,7 +49,7 @@ class S2SMTModel(LanguageModel):
         self.de_vocab_size = data_loader.de_vocab_size + 1
 
         self.start_token = self.de_vocab_size - 1
-        
+
 
     def add_placeholders(self):
         self.input_placeholder = 1
@@ -52,14 +61,14 @@ class S2SMTModel(LanguageModel):
     def add_embedding(self):
         return add_embedding(self, self.input_placeholder)
 
-    def add_encoding(self, inputs):
-        initial_states = [tf.zeros([self.config.batch_size, self.config.hidden_size], dtype=self.config.dtype) for x in xrange(self.config.en_layers)]
-        return add_encoding(self, inputs, initial_states)
+    def add_encoding(self, source):
+        initial_states = [_make_initial_states(self.config) for x in xrange(self.config.en_layers)]
+        return add_encoding(self, source, initial_states)
 
-    def add_decoding(self, encode_final_state):
-        initial_states = [tf.zeros([self.config.batch_size, self.config.hidden_size], dtype=self.config.dtype) for x in xrange(self.config.de_layers)]
-        initial_states[0] = en_final_state
-        return add_decoding(self, inputs, initial_states)
+    def add_decoding(self, target, encode_final_state):
+        initial_states = [_make_initial_states(self.config) for x in xrange(self.config.en_layers)]
+        initial_states[0] = encode_final_state
+        return add_decoding(self, target, initial_states)
 
     def add_attention(self):
         pass
@@ -95,8 +104,8 @@ class S2SMTModel(LanguageModel):
         outputs = []
 
         with tf.variable_scope('S2SMT') as scope:
-            en_output, en_final_states = self.add_encoding(self.add_embedding(self.input_placeholder))
-            de_output, de_final_states = self.add_decoding(self.labels_placeholder)
+            en_output, en_final_states = self.add_encoding(self.add_embedding(self.source_placeholder))
+            de_output, de_final_states = self.add_decoding(self.labels_placeholder, en_final_states[-1])
 
         return outputs
 
@@ -184,11 +193,9 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    
+
     run_tests()
 
 
 if __name__ == '__main__':
     main()
-
-
