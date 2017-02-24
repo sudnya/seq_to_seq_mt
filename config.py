@@ -28,8 +28,8 @@ class Config(object):
   lr             = 0.001
   l2             = 0.001
 
-  dtype     = tf.float32
-  enc_dtype = np.int32
+  dtype       = tf.float32
+  enc_dtype   = np.int32
   input_dtype = tf.int32
 
   # lang src is always in reverse
@@ -37,6 +37,7 @@ class Config(object):
   lang_tgt = 'en'
 
   # number of samples to load
-  train_samples = 1000000
-  dev_samples   = 10
-  test_samples  = 10
+  vocab_max_size = 10000
+  train_samples  = 1000000
+  dev_samples    = 10
+  test_samples   = 10

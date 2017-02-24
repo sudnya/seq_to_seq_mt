@@ -16,7 +16,6 @@ import math
 from collections import defaultdict
 from config import Config
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 logger = logging.getLogger('DataLoader')
 
@@ -30,8 +29,8 @@ class DataLoader():
 
         srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.__initializeFilenames__(cfg.lang_src, cfg.lang_tgt)
 
-        self.src_vocab = self.Vocab(srcV, "source")
-        self.tgt_vocab = self.Vocab(tgtV, "target")
+        self.src_vocab = self.Vocab(srcV, "source", cfg.vocab_max_size)
+        self.tgt_vocab = self.Vocab(tgtV, "target", cfg.vocab_max_size)
 
         self.en_vocab_size = len(self.src_vocab)
         self.de_vocab_size = len(self.tgt_vocab)
@@ -147,14 +146,21 @@ class DataLoader():
         for k, v in tgtTr.iteritems():
             logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
 
+        #plt.hist(tgtTr)
+        #plt.title("Histogram")
+        #plt.xlabel("Value")
+        #plt.ylabel("Frequency")
 
+        #fig = plt.gcf()
 
+        #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
 
 
 
 
     class Vocab():
-        def __init__(self, fileName, name):
+        def __init__(self, fileName, name, maxVocabSize):
+            self.maxVocabSize = maxVocabSize
             self.name = name
             self.word_to_index = {}
             self.index_to_word = {}
@@ -170,6 +176,10 @@ class DataLoader():
 
 
         def add_word(self, word, count=1):
+            if len(self.word_to_index.keys()) >= self.maxVocabSize:
+                logger.info("Vocab capacity full, not adding new words")
+                return
+
             if word not in self.word_to_index:
                 index = len(self.word_to_index)
                 self.word_to_index[word] = index
