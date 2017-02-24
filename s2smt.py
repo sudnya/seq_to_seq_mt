@@ -10,7 +10,7 @@ from encoder import add_encoding
 from encoder import add_embedding
 from decoder import add_decoding
 
-from utils import calculate_perplexity
+# from utils import calculate_perplexity
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
 
@@ -58,7 +58,6 @@ class S2SMTModel(LanguageModel):
         config.de_pad_token = config.de_vocab_size - 1
         config.start_token = config.de_vocab_size - 2
 
-
     def add_placeholders(self):
         self.en_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='en_placeholder')
         self.de_ref_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_ref_placeholder')
@@ -72,10 +71,10 @@ class S2SMTModel(LanguageModel):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         return add_encoding(self, source, initial_states)
 
-    def add_decoding(self, target, encoder_final_state):
+    def add_decoding(self, de_ref, encoder_final_state):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encoder_final_state
-        return add_decoding(self, target, initial_states)
+        return add_decoding(self, de_ref, initial_states)
 
     def add_attention(self):
         pass
@@ -84,36 +83,38 @@ class S2SMTModel(LanguageModel):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr, beta1=self.config.beta1, beta2=self.config.beta2)
         train_op = optimizer.minimize(loss)
 
-    def create_feed_dict(self, en_batch, de_batch):
+    def create_feed_dict(self, en_batch, de_ref_batch, de_pred_batch):
         """
-            @en_batch (config.np_raw_dtype)     numpy [batch_size x en_num_steps]
-            @de_batch (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
-            @return   (dictionary)              feed_dict
+            @en_batch       (config.np_raw_dtype)     numpy [batch_size x en_num_steps]
+            @de_ref_batch   (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
+            @de_pred_batch  (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
+            @return         (dictionary)              feed_dict
         """
         feed_dict = {}
         feed_dict[self.en_placeholder] = en_batch
+        feed_dict[self.de_ref_placeholder] = de_ref_batch
         # only in train mode will we have decoded batches
-        if de_batch is not None:
-            feed_dict[self.de_placeholder] = de_batch
+        if de_pred_batch is not None:
+            feed_dict[self.de_pred_placeholder] = de_pred_batch
             feed_dict[self.dropout_placeholder] = self.config.dropout
         return feed_dict
 
     def add_model(self):
         """
-            @return (config.dtype)      tensor [batch_size x hidden_size]
+            @return         (config.dtype)            tensor [batch_size x hidden_size]
         """
         with tf.variable_scope('S2SMT') as scope:
             en_output, en_final_state = self.add_encoding(self.add_embedding(self.en_placeholder))
             # TODO add Attention
 
-            de_output = self.add_decoding(self.de_placeholder, en_final_state)
+            de_output = self.add_decoding(self.de_ref_placeholder, en_final_state)
 
         return de_output
 
     def add_loss_op(self, pred_logits):
         # pred_logits input is list (num_steps) of Tensor[batch_size x de_vocab_size]
         # pred_logits should be Tensor[batch_size x de_num_steps x de_vocab_size]
-        pred_logits = tf.stack(pred_logits, axis = 1)
+        pred_logits = tf.stack(pred_logits, axis=1)
 
         # targets should be Tensor[batch_size x de_num_steps]
         targets = self.de_placeholder
@@ -193,7 +194,6 @@ class S2SMTModel(LanguageModel):
         raise NotImplementedError("Each Model must re-implement this method.")
 
 
-
 def translate_text(session, model, config, starting_text='<eos>',
                    stop_length=100, stop_tokens=None, temp=1.0):
     """Generate text from the model.
@@ -220,24 +220,24 @@ def translate_text(session, model, config, starting_text='<eos>',
 
     print tokens
 
-    for i in xrange(stop_length):
-        # YOUR CODE HERE
-
-        feed = {
-            model.input_placeholder: tokens[i - 1],
-            model.initial_state: state,
-            model.dropout_placeholder: 1
-        }
-        loss, y_pred, _ = session.run(
-            [model.calculate_loss, model.final_state, tf.no_op()], feed_dict=feed)
-
-        # END YOUR CODE
-        next_word_idx = sample(y_pred[0], temperature=temp)
-        tokens.append(next_word_idx)
-        if stop_tokens and model.vocab.decode(tokens[-1]) in stop_tokens:
-            break
-    output = [model.vocab.decode(word_idx) for word_idx in tokens]
-    return output
+    # for i in xrange(stop_length):
+    #     # YOUR CODE HERE
+    #
+    #     feed = {
+    #         model.input_placeholder: tokens[i - 1],
+    #         model.initial_state: state,
+    #         model.dropout_placeholder: 1
+    #     }
+    #     loss, y_pred, _ = session.run(
+    #         [model.calculate_loss, model.final_state, tf.no_op()], feed_dict=feed)
+    #
+    #     # END YOUR CODE
+    #     next_word_idx = sample(y_pred[0], temperature=temp)
+    #     tokens.append(next_word_idx)
+    #     if stop_tokens and model.vocab.decode(tokens[-1]) in stop_tokens:
+    #         break
+    # output = [model.vocab.decode(word_idx) for word_idx in tokens]
+    # return output
 
 
 def translate_sentence(session, model, config, en_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
