@@ -1,9 +1,10 @@
 import tensorflow as tf
 from model import LanguageModel
-
+from config import Config
 from encoder import add_embedding, add_encoding
 from DataLoader import DataLoader
 
+sequence_loss = tf.contrib.seq2seq.sequence_loss
 
 class S2SMTModel(LanguageModel):
 
@@ -35,13 +36,10 @@ class S2SMTModel(LanguageModel):
         self.en_vocab_size = data_loader.en_vocab_size
         self.de_vocab_size = data_loader.de_vocab_size
 
-
-
     def add_placeholders(self):
         self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='input')
         self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
-
 
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
@@ -53,7 +51,7 @@ class S2SMTModel(LanguageModel):
         """
         feed_dict = {}
 
-        feed_dict[self.input_placeholder]  = input_batch
+        feed_dict[self.input_placeholder] = input_batch
 
         # only in train mode will we have labels provided
         if label_batch is not None:
@@ -73,7 +71,6 @@ class S2SMTModel(LanguageModel):
         """
         pass
 
-
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
 
@@ -82,18 +79,18 @@ class S2SMTModel(LanguageModel):
         Returns:
           loss: A 0-d tensor (scalar) output
         """
-        targets       = [tf.reshape(self.labels_placeholder, [-1])]
+        targets = [tf.reshape(self.labels_placeholder, [-1])]
         target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.config.num_steps])
-        w             = tf.ones([self.config.batch_size, self.config.num_steps])
-        pred_logits   = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
-        
-        loss      = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
+        w = tf.ones([self.config.batch_size, self.config.num_steps])
+        pred_logits = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
+
+        loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
         self.sMax = tf.nn.softmax(f)
 
         tf.add_to_collection('total_loss', loss)
-        
+
         return loss
-    
+
     def run_epoch(self, session, data, train_op=None, verbose=10):
         """Runs an epoch of training.
 
@@ -107,7 +104,7 @@ class S2SMTModel(LanguageModel):
           average_loss: scalar. Average minibatch loss of model on epoch.
         """
         pass
-    
+
     def fit(self, sess, input_data, input_labels):
         """Fit model on provided data.
 
@@ -132,7 +129,6 @@ class S2SMTModel(LanguageModel):
         """
         raise NotImplementedError("Each Model must re-implement this method.")
 
-
     def add_embedding(self):
         return add_embedding(self, self.input_placeholder)
 
@@ -153,7 +149,6 @@ class S2SMTModel(LanguageModel):
     def add_training_op(self, loss):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
         train_op = optimizer.minimize(loss)
-
 
 
 def generate_text(session, model, config, starting_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
