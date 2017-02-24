@@ -15,8 +15,8 @@ class S2SMTModel(LanguageModel):
 
     def add_placeholders(self):
         config = self.config
-        self.input_placeholder = tf.placeholder(config.input_dtype, shape=(None, self.config.num_steps), name='input')
-        self.labels_placeholder = tf.placeholder(config.input_dtype, shape=(None, self.config.num_steps), name='labels')
+        self.src_placeholder = tf.placeholder(config.input_dtype, shape=(None, self.config.num_steps), name='input')
+        self.tgt_placeholder = tf.placeholder(config.input_dtype, shape=(None, self.config.num_steps), name='labels')
         self.dropout_placeholder = tf.placeholder(config.dtype, name='dropout')
 
 
@@ -30,6 +30,9 @@ class S2SMTModel(LanguageModel):
         return add_encoding(self, inputs, self.en_initial_states)
 
     def add_decoding(self):
+        """
+            @return (output, final_states)
+        """
         pass
 
     def add_attention(self):
@@ -40,7 +43,10 @@ class S2SMTModel(LanguageModel):
         pass
 
 
-    def add_model(self, inputs):
+    def add_model(self, input_data):
+        """
+            @input_data
+        """
         pass
 
 

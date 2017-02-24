@@ -1,6 +1,7 @@
 import tensorflow as tf
-import tf.contrib.rnn.BasicLSTMCell as LSTMCell
 import util.tfdebug as tfdebug
+
+LSTMCell = tf.contrib.rnn.BasicLSTMCell
 
 xavier_init = tf.contrib.layers.xavier_initializer()
 
