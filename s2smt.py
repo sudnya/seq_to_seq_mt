@@ -90,9 +90,30 @@ class S2SMTModel(LanguageModel):
         # only in train mode will we have labels provided
         if label_batch is not None:
             feed_dict[self.labels_placeholder] = label_batch
+        
+        return feed_dict
+
+    def add_model(self, input_data):
+        """Implements core of model that transforms input_data into predictions.
+        The core transformation for this model which transforms a batch of input
+        data into a batch of predictions.
+
+        Args: input_data: A tensor of shape (batch_size, n_features).
+        Returns: out: A tensor of shape (batch_size, n_classes)
+        """
+        rnn_outputs = []
+        # (config.dtype)      list (num_steps) x batch_size x hidden_size
+        embeddings  = self.add_embedding()
+        with tf.variable_scope('S2SMT') as scope:
+            #output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
+            #states:     (config.dtype)    list (layers) x batch_size x hidden_size
+            en_output, en_states = self.add_encoding(input_data)
+            self.add_decoding()
 
         return feed_dict
 
+    
+    
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
         Args: pred: A tensor of shape (batch_size, n_classes)
@@ -141,6 +162,41 @@ class S2SMTModel(LanguageModel):
           predictions: Predictions of model on input_data
         """
         raise NotImplementedError("Each Model must re-implement this method.")
+
+
+    def add_embedding(self):
+        """
+            @model:
+            @inputs:        (int32)             batch_size x num_steps
+            @return:        (config.dtype)      list (num_steps) x batch_size x hidden_size
+        """
+        return add_embedding(self, self.input_placeholder)
+
+    def add_encoding(self, inputs):
+    """
+        @model:
+        @inputs:        (config.dtype)    list (num_steps) x batch_size x hidden_size
+        @initial_state: (config.dtype)    list (layers) x batch_size x hidden_size
+        @return:
+            output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
+            states:     (config.dtype)    list (layers) x batch_size x hidden_size
+    """
+        if not self.en_initial_states:
+            self.en_initial_states = [tf.zeros([self.config.batch_size, self.config.en_hidden_size], dtype=self.config.dtype) for x in xrange(self.config.en_layers)]
+        return add_encoding(self, inputs, self.en_initial_states)
+
+    def add_decoding(self):
+        """
+            @return (output, final_states)
+        """
+        pass
+
+    def add_attention(self):
+        pass
+
+    def add_training_op(self, loss):
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
+        train_op = optimizer.minimize(loss)
 
 
 
