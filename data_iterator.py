@@ -10,13 +10,9 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
     for i in range(batch_size):
         #one sample
         sample_len  = data_slice[i].shape[0]
-        print sample_len , " vs. ", max_len
         assert sample_len <= max_len, " sample length can never be greater than max length allowed "
-        #print "sample has ", sample_len, " words"
-        #print "data slice is ", data_slice[i][:sample_len]
 
         ret_data[i][:sample_len] = data_slice[i][:sample_len]
-        #print "over wrote as ", ret_data[i]
     return ret_data
 
 
@@ -25,7 +21,7 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, star
     
     if de_data == None:
         #predict mode, no refs here
-        logger.info("decoder data is None, which means we are in predict mode, so no references. creating face de_data for decoder")
+        logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
         de_data = [pad_token]*len(en_data)
     # num_samples x ?
 
