@@ -5,7 +5,7 @@ import tensorflow as tf
 from model import LanguageModel
 from config import Config
 import encoder
-# from decoder import add_decoding
+import decoder
 
 from data_loader import DataLoader
 

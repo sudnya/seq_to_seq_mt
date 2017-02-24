@@ -14,9 +14,9 @@ LSTMCell = tf.contrib.rnn.BasicLSTMCell
 xavier_init = tf.contrib.layers.xavier_initializer()
 
 
-def decoding_embedding(model, inputs):
+def add_embedding(model, inputs):
     """
-    add decoding_embedding
+        @
     """
     config = model.config
     inputs = tfdebug(config, inputs, 'inputs')
@@ -31,6 +31,8 @@ def decoding_embedding(model, inputs):
         output=tfdebug(config, output, message = "ERROR")
     return output
 
+def add_projection(model, inputs):
+    pass
 
 def add_decoding_layer(model, inputs, intial_state):
     """
@@ -45,15 +47,11 @@ def add_decoding_layer(model, inputs, intial_state):
     state=initial_state
     output=[]
 
-
-
     with tf.variable_scope('DecodingLayer'):
         cell=LSTMCell(config.de_hidden_size)
         for step in xrange(config.de_num_steps):  # TODO - change this to dynamically find steps based on input
             state=cell(inputs[step], state)
             output.append(state)
-
-
 
     return (output, state)
 
