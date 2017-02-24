@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+
 
 class Config(object):
   """Holds model hyperparams and data information.
@@ -27,7 +29,7 @@ class Config(object):
   l2             = 0.001
 
   dtype     = tf.float32
-  enc_dtype = tf.int32
+  enc_dtype = np.int32
 
   # lang src is always in reverse
   lang_src = 'vi'
