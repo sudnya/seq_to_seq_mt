@@ -101,13 +101,12 @@ class S2SMTModel(LanguageModel):
         return rnn_outputs
 
     def add_loss_op(self, pred):
-        batch_size = self.config.batch_size
+        batch_size    = self.config.batch_size
         target_labels = tf.reshape(self.labels_placeholder, [batch_size, self.num_steps_placeholder])
-        weights = tf.ones([batch_size, self.num_steps_placeholder])
-        pred_logits = tf.reshape(pred, [batch_size, self.num_steps_placeholder, self.de_vocab_size])
-        loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
-        
-        self.sMax = tf.nn.softmax(pred_logits)
+        weights       = tf.ones([batch_size, self.num_steps_placeholder])
+        pred_logits   = tf.reshape(pred, [batch_size, self.num_steps_placeholder, self.de_vocab_size])
+        loss          = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
+        self.sMax     = tf.nn.softmax(pred_logits)
 
         tf.add_to_collection('total_loss', loss)
 
