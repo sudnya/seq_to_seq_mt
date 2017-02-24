@@ -59,8 +59,15 @@ class S2SMTModel(LanguageModel):
         train_op = optimizer.minimize(loss)
 
     def add_model(self, input_data):
-        """
-            @input_data
+        """Implements core of model that transforms input_data into predictions.
+
+        The core transformation for this model which transforms a batch of input
+        data into a batch of predictions.
+
+        Args:
+          input_data: A tensor of shape (batch_size, n_features).
+        Returns:
+          out: A tensor of shape (batch_size, n_classes)
         """
         pass
 

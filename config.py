@@ -37,6 +37,6 @@ class Config(object):
   lang_tgt = 'en'
 
   # number of samples to load
-  train_samples = 100
+  train_samples = 1000000
   dev_samples   = 10
   test_samples  = 10
