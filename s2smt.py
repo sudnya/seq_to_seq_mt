@@ -28,17 +28,17 @@ class S2SMTModel(LanguageModel):
         if debug:
             num_debug = 1024
             self.en_train = self.en_train[:num_debug]
-            self.en_dev = self.en_dev[:num_debug]
-            self.en_test = self.en_test[:num_debug]
+            self.en_dev   = self.en_dev[:num_debug]
+            self.en_test  = self.en_test[:num_debug]
 
             self.de_train = self.de_train[:num_debug]
-            self.de_dev = self.de_dev[:num_debug]
-            self.de_test = self.de_test[:num_debug]
+            self.de_dev   = self.de_dev[:num_debug]
+            self.de_test  = self.de_test[:num_debug]
 
         self.en_vocab_size = data_loader.en_vocab_size + 1
         self.de_vocab_size = data_loader.de_vocab_size + 1
 
-        self.start_token = self.de_vocab_size
+        self.start_token = self.de_vocab_size - 1
 
     def add_placeholders(self):
         self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='input')
