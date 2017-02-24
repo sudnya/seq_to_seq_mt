@@ -29,7 +29,7 @@ def add_embedding(model, inputs):
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
         output = tf.split(output, tf.ones(config.en_num_steps, dtype=tf.int32), axis=1)
         output = map(tf.squeeze, output)
-        output = tfdebug(config, output, message='ADD EMBEDDING OUT')
+        print len(output) , " x ", output[0].get_shape()
     return output
 
 

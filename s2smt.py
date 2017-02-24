@@ -1,12 +1,10 @@
+import argparse
+import logging
 import tensorflow as tf
+
 from model import LanguageModel
 from config import Config
-<<<<<<< HEAD
-from encoder import add_embedding, add_encoding
-from decoder import add_decoding
-=======
 from encoder import *
->>>>>>> aaae89c4038848dfc87ee68d4afacf74ba902bd6
 from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
@@ -164,14 +162,21 @@ def test_S2SMTModel():
 def test_encoder():
     t_model  = S2SMTModel()
     t_model.load_data()
-    ref_num_steps   = t_model.config.num_steps 
+    ref_num_steps   = t_model.config.en_num_steps 
     ref_batch_size  = t_model.config.batch_size
     ref_hidden_size = t_model.config.hidden_size
+    ref_layer_size  = t_model.config.en_layers
 
     t_inputs = t_model.add_embedding()
     assert len(t_inputs) == ref_num_steps
+    
+    #20  x  <unknown> so cannot be verified
+    #print t_inputs[0].get_shape() , "woooo"
+    #assert t_inputs[0].get_shape() == (ref_batch_size, ref_hidden_size)
 
-    t_X      = t_model.add_encoding(t_inputs)
+    t_rnn_y, f_state      = t_model.add_encoding(t_inputs)
+    assert len(t_rnn_y) == ref_num_steps
+    assert len(f_state) == ref_layer_size
 
 def test_decoder():
     pass
