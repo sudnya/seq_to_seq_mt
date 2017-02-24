@@ -22,19 +22,21 @@ logger = logging.getLogger('DataLoader')
 class DataLoader():
 
     def __init__(self, cfg):
-        self.src      = cfg.lang_src
-        self.tgt      = cfg.lang_tgt
         train_samples = cfg.train_samples
         dev_samples   = cfg.dev_samples
         test_samples  = cfg.dev_samples
         data_type     = cfg.enc_dtype
 
-        srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.initialize_filenames(self.src, self.tgt)
+        srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.initialize_filenames(cfg.lang_src, cfg.lang_tgt)
 
-        self.vocab_source = self.Vocab(srcV, "source")
-        self.vocab_target = self.Vocab(tgtV, "target")
+        self.src_vocab = self.Vocab(srcV, "source")
+        self.tgt_vocab = self.Vocab(tgtV, "target")
+
+        self.en_vocab_size = len(self.src_vocab)
+        self.de_vocab_size = len(self.tgt_vocab)
         
-        #Train - src, rev_src, target
+
+        #Train - src, rev_src, target (no need to reverse target)
         self.src_encoded_train = self.loadEncodings(srcTr, data_type, train_samples)
         logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
 
@@ -45,7 +47,7 @@ class DataLoader():
         logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
 
         
-        #dev - src, rev_src, target
+        #dev - src, rev_src, target (no need to reverse target)
         self.src_encoded_dev = self.loadEncodings(srcDev, data_type, dev_samples)
         logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
 
@@ -87,7 +89,7 @@ class DataLoader():
                 break
             else:
                 words = line.split()
-                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=data_type))
+                encoded_train.append(np.array( [self.src_vocab.encode(word) for word in words], dtype=data_type))
 
                 totalSamples += 1
         #logger.debug(encoded_train)
@@ -104,7 +106,7 @@ class DataLoader():
             else:
                 words = line.split()
                 words.reverse()
-                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=data_type))
+                encoded_train.append(np.array( [self.src_vocab.encode(word) for word in words], dtype=data_type))
                 totalSamples += 1
         #logger.debug(encoded_train)
         #logger.info(encoded_train[0])
