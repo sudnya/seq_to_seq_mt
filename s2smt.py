@@ -2,16 +2,13 @@ import argparse
 import logging
 import tensorflow as tf
 
-from model import LanguageModel
 from config import Config
+from model import LanguageModel
+from data_loader import DataLoader
 import encoder
 import decoder
 
-from data_loader import DataLoader
-
 sequence_loss = tf.contrib.seq2seq.sequence_loss
-# add_encoding = encoder.add_encoding
-# add_embedding = encoder.add_embedding
 
 
 def _make_lstm_initial_states(config):
@@ -64,16 +61,16 @@ class S2SMTModel(LanguageModel):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         return encoder.add_encoding(self, source, initial_states)
 
-    def add_decoding(self, target, encode_final_state):
+    def add_decoding(self, target, encoder_final_state):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
-        initial_states[0] = encode_final_state
+        initial_states[0] = encoder_final_state
         return decoder.add_decoding(self, target, initial_states)
 
     def add_attention(self):
         pass
 
     def add_training_op(self, loss):
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr, beta1=self.config.beta1, beta2=self.config.beta2)
         train_op = optimizer.minimize(loss)
 
     def create_feed_dict(self, input_batch, label_batch):

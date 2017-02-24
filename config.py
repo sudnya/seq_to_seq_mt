@@ -10,9 +10,9 @@ class Config(object):
     enc_dtype = np.int32
     input_dtype = tf.int32
 
-    ### Realtime Adjustable
-    debug = True # switch off for production
-    train = True # switch off for testing
+    # Realtime Adjustable
+    debug = True  # switch off for production
+    train = True  # switch off for testing
 
     # change on feeding
     en_num_steps = 20
@@ -32,6 +32,8 @@ class Config(object):
     early_stopping = 2
     dropout = 0.9
     lr = 0.001
+    beta1 = 0.9
+    beta2 = 0.999
     l2 = 0.001
 
     # Fixed language source and target
