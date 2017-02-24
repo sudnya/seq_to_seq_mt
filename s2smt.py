@@ -2,7 +2,7 @@ import tensorflow as tf
 from model import LanguageModel
 from config import Config
 from encoder import add_embedding, add_encoding
-from DataLoader import DataLoader
+from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
 
@@ -16,9 +16,9 @@ class S2SMTModel(LanguageModel):
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
 
-        self.en_train = data_loader.src_encoded_train
-        self.en_dev = data_loader.src_encoded_dev
-        self.en_test = data_loader.src_encoded_test
+        self.en_train = data_loader.src_encoded_train_res
+        self.en_dev = data_loader.src_encoded_dev_res
+        self.en_test = data_loader.src_encoded_test_res
 
         self.de_train = data_loader.tgt_encoded_train
         self.de_dev = data_loader.tgt_encoded_dev

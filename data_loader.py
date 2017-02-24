@@ -7,15 +7,13 @@
 #
 ###############################################################################
 
-import os
 import argparse
 import logging
-import time
 import numpy as np
-import math
 from collections import defaultdict
 from config import Config
-import tensorflow as tf
+import matplotlib.pyplot as plt
+
 
 logger = logging.getLogger('DataLoader')
 
