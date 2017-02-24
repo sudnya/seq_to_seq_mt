@@ -24,7 +24,7 @@ class DataLoader():
         train_samples = cfg.train_samples
         dev_samples = cfg.dev_samples
         test_samples = cfg.dev_samples
-        dataType = cfg.enc_dtype
+        dataType = cfg.np_raw_dtype
 
         srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.__initializeFilenames__(cfg.source_lang, cfg.target_lang)
 

@@ -7,8 +7,8 @@ class Config(object):
     """
     # Fixed datatype per model
     dtype = tf.float32
-    enc_dtype = np.int32
-    input_dtype = tf.int32
+    np_raw_dtype = np.int32
+    tf_raw_dtype = tf.int32
 
     # Realtime Adjustable
     debug = True  # switch off for production
