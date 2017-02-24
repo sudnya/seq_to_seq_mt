@@ -2,6 +2,7 @@ import tensorflow as tf
 from model import LanguageModel
 
 from encoder import add_embedding, add_encoding
+from DataLoader import DataLoader
 
 
 class S2SMTModel(LanguageModel):
@@ -11,8 +12,28 @@ class S2SMTModel(LanguageModel):
 
 
     def load_data(self, debug=False):
-        pass
+        cfg           = Config()
+        data_loader   = DataLoader(cfg)
+        
+        self.en_train = data_loader.src_encoded_train
+        self.en_dev   = data_loader.src_encoded_dev
+        self.en_test  = data_loader.src_encoded_test
 
+        self.de_train = data_loader.tgt_encoded_train
+        self.de_dev   = data_loader.tgt_encoded_dev
+        self.de_test  = data_loader.tgt_encoded_test
+
+        if debug:
+            num_debug     = 1024
+            self.en_train = self.en_train[:num_debug]
+            self.en_dev   = self.en_dev[:num_debug]
+            self.en_test  = self.en_test[:num_debug]
+
+            self.de_train = self.de_train[:num_debug]
+            self.de_dev   = self.de_dev[:num_debug]
+            self.de_test  = self.de_test[:num_debug]
+
+        
     def add_placeholders(self):
         config = self.config
         self.input_placeholder = tf.placeholder(config.input_dtype, shape=(None, self.config.num_steps), name='input')
