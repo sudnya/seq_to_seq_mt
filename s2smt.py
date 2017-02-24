@@ -47,15 +47,21 @@ class S2SMTModel(LanguageModel):
             self.de_dev = self.de_dev[:num_debug]
             self.de_test = self.de_test[:num_debug]
 
-        self.config.en_vocab_size = data_loader.en_vocab_size + 2
-        self.config.de_vocab_size = data_loader.de_vocab_size + 2
+        config = self.config
 
-        self.config.start_token = self.config.de_vocab_size - 1
-        self.config.pad_token = self.config.de_vocab_size - 2
+        config.en_vocab_size = data_loader.en_vocab_size + 1
+        config.de_vocab_size = data_loader.de_vocab_size + 2
+
+        config.en_pad_token = config.en_vocab_size - 1
+
+        config.de_pad_token = config.de_vocab_size - 1
+        config.start_token = config.de_vocab_size - 2
+
 
     def add_placeholders(self):
-        self.en_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='input')
-        self.de_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='labels')
+        self.en_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='en_placeholder')
+        self.de_ref_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_ref_placeholder')
+        self.de_pred_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_pred_placeholder')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
     def add_embedding(self):
@@ -104,14 +110,12 @@ class S2SMTModel(LanguageModel):
         return de_output
 
     def add_loss_op(self, pred_logits):
+        # pred_logits input is list (num_steps) of Tensor[batch_size x de_vocab_size]
+        # pred_logits should be Tensor[batch_size x de_num_steps x de_vocab_size]
+        pred_logits = tf.stack(pred_logits, axis = 1)
+
         # targets should be Tensor[batch_size x de_num_steps]
         targets = self.de_placeholder
-
-        # pred_logits input is list ()
-        # pred_logits should be Tensor[batch_size x de_num_steps x de_vocab_size]
-
-        pred_logits = tf.reshape(pred, [self.config.batch_size, self.num_steps_placeholder, self.de_vocab_size])
-
 
         weights = tf.ones([self.config.batch_size, self.config.de_num_steps])
 
