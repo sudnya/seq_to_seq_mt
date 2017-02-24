@@ -30,6 +30,7 @@ class Config(object):
 
   dtype     = tf.float32
   enc_dtype = np.int32
+  input_dtype = tf.int32
 
   # lang src is always in reverse
   lang_src = 'vi'
