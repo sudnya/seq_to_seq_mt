@@ -1,8 +1,10 @@
 import tensorflow as tf
 from model import LanguageModel
-
+from config import Config
 from encoder import add_embedding, add_encoding
 from DataLoader import DataLoader
+
+sequence_loss = tf.contrib.seq2seq.sequence_loss
 
 
 class S2SMTModel(LanguageModel):
@@ -35,12 +37,44 @@ class S2SMTModel(LanguageModel):
         self.en_vocab_size = data_loader.en_vocab_size
         self.de_vocab_size = data_loader.de_vocab_size
 
-
-
     def add_placeholders(self):
-        self.input_placeholder   = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='input')
-        self.labels_placeholder  = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
-        self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
+        config = self.config
+        self.input_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='input')
+        self.labels_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='labels')
+        self.num_steps = tf.placeholder(tf.int32, name='num_steps')
+        self.dropout_placeholder = tf.placeholder(config.dtype, name='dropout')
+
+    def add_embedding(self):
+        return add_embedding(self, self.input_placeholder)
+
+    def add_encoding(self, inputs):
+        config = self.config
+        initial_states = [tf.zeros([config.batch_size, config.en_hidden_size], dtype=config.dtype) for x in xrange(config.en_layers)]
+        return add_encoding(self, inputs, initial_states)
+
+    def add_decoding(self):
+        """
+            @return (output, final_states)
+        """
+        pass
+
+    def add_attention(self):
+        pass
+
+    def add_training_op(self, loss):
+        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
+        train_op = optimizer.minimize(loss)
+
+
+    def add_model(self, input_data):
+        """Implements core of model that transforms input_data into predictions.
+        The core transformation for this model which transforms a batch of input
+        data into a batch of predictions.
+
+        Args: input_data: A tensor of shape (batch_size, n_features).
+        Returns: out: A tensor of shape (batch_size, n_classes)
+        """
+        pass
 
 
     def create_feed_dict(self, input_batch, label_batch):
@@ -52,7 +86,7 @@ class S2SMTModel(LanguageModel):
         """
         feed_dict = {}
 
-        feed_dict[self.input_placeholder]  = input_batch
+        feed_dict[self.input_placeholder] = input_batch
         # only in train mode will we have labels provided
         if label_batch is not None:
             feed_dict[self.labels_placeholder] = label_batch
@@ -76,6 +110,8 @@ class S2SMTModel(LanguageModel):
             en_output, en_states = self.add_encoding(input_data)
             self.add_decoding()
 
+        return feed_dict
+
     
     
     def add_loss_op(self, pred):
@@ -83,18 +119,18 @@ class S2SMTModel(LanguageModel):
         Args: pred: A tensor of shape (batch_size, n_classes)
         Returns: loss: A 0-d tensor (scalar) output
         """
-        targets       = [tf.reshape(self.labels_placeholder, [-1])]
+        targets = [tf.reshape(self.labels_placeholder, [-1])]
         target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.config.num_steps])
-        w             = tf.ones([self.config.batch_size, self.config.num_steps])
-        pred_logits   = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
-        
-        loss      = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
+        w = tf.ones([self.config.batch_size, self.config.num_steps])
+        pred_logits = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
+
+        loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
         self.sMax = tf.nn.softmax(f)
 
         tf.add_to_collection('total_loss', loss)
-        
+
         return loss
-    
+
     def run_epoch(self, session, data, train_op=None, verbose=10):
         """Runs an epoch of training.  Trains the model for one-epoch.
         Args:
@@ -104,7 +140,7 @@ class S2SMTModel(LanguageModel):
         Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
         pass
-    
+
     def fit(self, sess, input_data, input_labels):
         """Fit model on provided data.
         Args:
