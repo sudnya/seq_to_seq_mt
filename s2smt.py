@@ -242,4 +242,3 @@ def translate_text(session, model, config, starting_text='<eos>',
 
 def translate_sentence(session, model, config, en_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
     pass
-
