@@ -1,24 +1,35 @@
 import numpy as np
 
+def padded_mini_b(data_slice, batch_size, max_len, dtype):
+    ret_data = np.zeroes([batch_size, max_len], dtype=dtype)
+
+    for i in range(data_slice):
+        #one sample
+        sample_len = data_slice[i]
+        ret_data   = [data_slice[x] for x in range(sample_len)]
+        
+
 
 def data_iterator(en_data, de_data, batch_size, dtype=np.int32):
-    # Pulled from https://github.com/tensorflow/tensorflow/blob/master/tensorflow/models/rnn/ptb/reader.py#L82
+    # num_samples x ?
     en_data = np.array(en_data, dtype=dtype)
     de_data = np.array(de_data, dtype=dtype)
-    data_len = len(en_data)
+    
 
-    assert data_len == len(de_data), 'encoder data length does not match decoder data length'
+    assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
+    total_buckets = len(en_data) // batch_size
 
-    data_len = len(full_data)
-    batch_len = data_len // batch_size
-    data = np.zeros([batch_size, batch_len], dtype=dtype)
-    for i in range(batch_size):
-        data[i] = full_data[batch_len * i:batch_len * (i + 1)]
-    epoch_size = (batch_len - 1) // num_steps
-    if epoch_size == 0:
-        raise ValueError("epoch_size == 0, decrease batch_size or num_steps")
-    for i in range(epoch_size):
-        x = data[:, i * num_steps:(i + 1) * num_steps]
-        y = data[:, i * num_steps + 1:(i + 1) * num_steps + 1]
-        yield (x, y)
+    max_len_for_each_bucket = []
+    for bucket in range(total_buckets):
+        
+        start = bucket * batch_size
+        end   = start + batch_size
+        
+        max_len_for_this_bucket = en_data[end - 1].shape[0] #last element in this miniB
+        
+        t_en_data[bucket] = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_bucket, dtype)
+        t_de_data[bucket] = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_bucket, dtype)
+
+        
+    
