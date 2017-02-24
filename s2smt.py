@@ -65,10 +65,6 @@ class S2SMTModel(LanguageModel):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
         train_op = optimizer.minimize(loss)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 9d5e4a93ad37f143b090e57470b696d87da8bb2a
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
         Args:
@@ -115,6 +111,7 @@ class S2SMTModel(LanguageModel):
         pred_logits = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
 
         loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
+        
         self.sMax = tf.nn.softmax(f)
 
         tf.add_to_collection('total_loss', loss)
