@@ -65,6 +65,10 @@ class S2SMTModel(LanguageModel):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
         train_op = optimizer.minimize(loss)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 9d5e4a93ad37f143b090e57470b696d87da8bb2a
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
         Args:
@@ -98,7 +102,7 @@ class S2SMTModel(LanguageModel):
             en_output, en_states = self.add_encoding(input_data)
             self.add_decoding()
 
-        return feed_dict
+        return rnn_outputs
 
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.

@@ -110,11 +110,11 @@ class DataLoader():
     def plotLengths(self):
         z = [len(i) for i in self.tgt_encoded_train]
 
-        plt.hist(z, bins=400)
-        plt.title("Gaussian Histogram")
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
-        plt.show()
+        #plt.hist(z, bins=400)
+        #plt.title("Gaussian Histogram")
+        #plt.xlabel("Value")
+        #plt.ylabel("Frequency")
+        #plt.show()
 
     def getStats(self):
         srcTr = {}
