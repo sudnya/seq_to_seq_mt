@@ -54,7 +54,7 @@ class S2SMTModel(LanguageModel):
 
     def add_placeholders(self):
         self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='input')
-        self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='labels')
+        self.de_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='labels')
         #self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
@@ -89,7 +89,7 @@ class S2SMTModel(LanguageModel):
         feed_dict[self.input_placeholder] = input_batch
         # only in train mode will we have labels provided
         if label_batch is not None:
-            feed_dict[self.labels_placeholder] = label_batch
+            feed_dict[self.de_placeholder] = label_batch
 
         return feed_dict
 
@@ -101,16 +101,15 @@ class S2SMTModel(LanguageModel):
         Args: input_data: A tensor of shape (batch_size, n_features).
         Returns: out: A tensor of shape (batch_size, n_classes)
         """
-        outputs = []
-
         with tf.variable_scope('S2SMT') as scope:
-            en_output, en_final_states = self.add_encoding(self.add_embedding(self.source_placeholder))
-            de_output, de_final_states = self.add_decoding(self.labels_placeholder, en_final_states[-1])
+            en_output, en_final_state = self.add_encoding(self.add_embedding(self.en_placeholder))
 
-        return outputs
+            de_output = self.add_decoding(self.de_placeholder, en_final_state)
+
+        return de_output
 
     def add_loss_op(self, pred):
-        target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.num_steps_placeholder])
+        target_labels = tf.reshape(self.de_placeholder, [self.config.batch_size, self.num_steps_placeholder])
         weights = tf.ones([self.config.batch_size, self.num_steps_placeholder])
         pred_logits = tf.reshape(pred, [self.config.batch_size, self.num_steps_placeholder, self.de_vocab_size])
         loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
