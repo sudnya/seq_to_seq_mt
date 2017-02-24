@@ -14,52 +14,72 @@ import time
 import numpy as np
 import math
 from collections import defaultdict
-
+from config import Config
+import tensorflow as tf
 
 logger = logging.getLogger('DataLoader')
 
 class DataLoader():
 
-    def __init__(self, srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest, subSamples, valSamples, testSamples):
+    def __init__(self, cfg):
+        self.src      = cfg.lang_src
+        self.tgt      = cfg.lang_tgt
+        train_samples = cfg.train_samples
+        dev_samples   = cfg.dev_samples
+        test_samples  = cfg.dev_samples
+        data_type     = cfg.enc_dtype
+
+        srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.initialize_filenames(self.src, self.tgt)
+
         self.vocab_source = self.Vocab(srcV, "source")
         self.vocab_target = self.Vocab(tgtV, "target")
-        #TODO: optimize this - take src, tgt language and infer files accordingly
         
         #Train - src, rev_src, target
-        self.src_encoded_train = self.loadEncodings(srcTr, subSamples)
-        logger.info("source training samples expected: " + str(subSamples) + " created " + str(len(self.src_encoded_train)))
+        self.src_encoded_train = self.loadEncodings(srcTr, data_type, train_samples)
+        logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
 
-        self.src_encoded_train_rev = self.loadReverseEncodings(srcTr, subSamples)
-        logger.info("reversed source training samples expected: " + str(subSamples) + " created " + str(len(self.src_encoded_train_rev)))
+        self.src_encoded_train_rev = self.loadReverseEncodings(srcTr, data_type, train_samples)
+        logger.info("reversed source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train_rev)))
         
-        self.tgt_encoded_train = self.loadEncodings(tgtTr, subSamples)
-        logger.info("target training samples expected: " + str(subSamples) + " created " + str(len(self.tgt_encoded_train)))
+        self.tgt_encoded_train = self.loadEncodings(tgtTr, data_type, train_samples)
+        logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
 
         
         #dev - src, rev_src, target
-        self.src_encoded_dev = self.loadEncodings(srcDev, valSamples)
-        logger.info("source dev samples expected: " + str(valSamples) + " created " + str(len(self.src_encoded_dev)))
+        self.src_encoded_dev = self.loadEncodings(srcDev, data_type, dev_samples)
+        logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
 
-        self.src_encoded_dev_rev = self.loadReverseEncodings(srcDev, subSamples)
-        logger.info("reversed source training samples expected: " + str(subSamples) + " created " + str(len(self.src_encoded_dev_rev)))
+        self.src_encoded_dev_rev = self.loadReverseEncodings(srcDev, data_type, dev_samples)
+        logger.info("reversed source training samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev_rev)))
 
-        self.tgt_encoded_dev = self.loadEncodings(tgtDev, valSamples)
-        logger.info("target dev samples expected: " + str(valSamples) + " created " + str(len(self.tgt_encoded_dev)))
+        self.tgt_encoded_dev = self.loadEncodings(tgtDev, data_type, dev_samples)
+        logger.info("target dev samples expected: " + str(dev_samples) + " created " + str(len(self.tgt_encoded_dev)))
 
 
         #test - src, target - No need to rev test data
-        self.src_encoded_test = self.loadEncodings(srcTest, testSamples)
-        logger.info("source test samples expected: " + str(testSamples) + " created " + str(len(self.src_encoded_test)))
+        self.src_encoded_test = self.loadEncodings(srcTest, data_type, test_samples)
+        logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
         
-        self.src_encoded_test_rev = self.loadReverseEncodings(srcTest, testSamples)
-        logger.info("reversed test training samples expected: " + str(testSamples) + " created " + str(len(self.src_encoded_test_rev)))
+        self.src_encoded_test_rev = self.loadReverseEncodings(srcTest, data_type, test_samples)
+        logger.info("reversed test training samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test_rev)))
         
-        self.tgt_encoded_test = self.loadEncodings(tgtTest, testSamples)
-        logger.info("target test samples expected: " + str(testSamples) + " created " + str(len(self.tgt_encoded_test)))
+        self.tgt_encoded_test = self.loadEncodings(tgtTest, data_type, test_samples)
+        logger.info("target test samples expected: " + str(test_samples) + " created " + str(len(self.tgt_encoded_test)))
+
+    def initialize_filenames(self, src, tgt):
+        srcVocab = "data/vocab." + src + ".txt"
+        tgtVocab = "data/vocab." + tgt + ".txt"
+        srcTrain = "data/train." + src + ".txt"
+        tgtTrain = "data/train." + tgt + ".txt"
+        srcDev   = "data/tst2012." + src + ".txt"
+        tgtDev   = "data/tst2012." + tgt + ".txt"
+        srcTest  = "data/tst2013." + src + ".txt"
+        tgtTest  = "data/tst2013." + tgt + ".txt"
+        return srcVocab, tgtVocab, srcTrain, tgtTrain, srcDev, tgtDev, srcTest, tgtTest
 
 
 
-    def loadEncodings(self, trFile, subSamples=10000):
+    def loadEncodings(self, trFile, data_type, subSamples=1000):
         totalSamples = 0
         encoded_train = []
         for line in open(trFile):
@@ -67,7 +87,7 @@ class DataLoader():
                 break
             else:
                 words = line.split()
-                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=np.int32))
+                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=data_type))
 
                 totalSamples += 1
         #logger.debug(encoded_train)
@@ -75,7 +95,7 @@ class DataLoader():
         logger.debug("training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
-    def loadReverseEncodings(self, trFile, subSamples=10000):
+    def loadReverseEncodings(self, trFile, data_type, subSamples=10000):
         totalSamples = 0
         encoded_train = []
         for line in open(trFile):
@@ -84,12 +104,14 @@ class DataLoader():
             else:
                 words = line.split()
                 words.reverse()
-                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=np.int32))
+                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=data_type))
                 totalSamples += 1
         #logger.debug(encoded_train)
         #logger.info(encoded_train[0])
         logger.debug("reverse training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
+
+
 
     class Vocab():
         def __init__(self, fileName, name):
@@ -151,7 +173,8 @@ def main():
     enTest  = "data/tst2013.en.txt"
 
     logger.info ("Source " + viVocab + " target " + enVocab)
-    d = DataLoader(viVocab, enVocab, viTrain, enTrain, viDev, enDev, viTest, enTest, 10, 10, 10)
+    cfg = Config()
+    d = DataLoader(cfg)#viVocab, enVocab, viTrain, enTrain, viDev, enDev, viTest, enTest, 10, 10, 10)
     
 if __name__ == '__main__':
     main()
