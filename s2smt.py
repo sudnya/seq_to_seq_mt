@@ -73,10 +73,10 @@ class S2SMTModel(LanguageModel):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         return add_encoding(self, source, initial_states)
 
-    def add_decoding(self, de_ref, encoder_final_state):
+    def add_decoding(self,encoder_final_state, de_ref, de_pred):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encoder_final_state
-        return add_decoding(self, de_ref, initial_states)
+        return add_decoding(self, initial_states, de_ref, de_pred)
 
     def add_attention(self):
         pass
@@ -109,7 +109,7 @@ class S2SMTModel(LanguageModel):
             en_output, en_final_state = self.add_encoding(self.add_embedding(self.en_placeholder))
             # TODO add Attention
 
-            de_output = self.add_decoding(self.de_ref_placeholder, en_final_state)
+            de_output = self.add_decoding(en_final_state, self.de_ref_placeholder, self.de_pred_placeholder )
 
         return de_output
 
