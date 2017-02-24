@@ -173,7 +173,7 @@ class S2SMTModel(LanguageModel):
             sys.stdout.write('\r')
         return np.exp(np.mean(total_loss))
 
-    def fit(self, sess, input_data, input_labels):
+    def fit(self, sess, X, y):
         """Fit model on provided data.
         Args:
           sess: tf.Session()
@@ -181,7 +181,20 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: losses: list of loss per epoch
         """
-        pass
+        losses = []
+        
+        if np.any(y):
+            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+        
+        for step, (x, y) in enumerate(data):
+            feed = self.create_feed_dict(input_batch=x, dropout=dp)
+            if np.any(y):
+                feed[self.labels_placeholder] = y
+                loss, preds                   = session.run( [self.loss, self.predictions], feed_dict=feed)
+                losses.append(loss)
+        
+        return losses
+
 
     def predict(self, sess, X, y=None):
         """Make predictions from the provided model.
