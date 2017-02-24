@@ -22,9 +22,15 @@ def add_embedding(model, inputs):
     return output
 
 
-def add_encoding(model, inputs, initial_state):
-    # inputs list (num_steps) of batch_size x hidden_size
-    # output list (num_steps) of batch_size x hidden_size
+def add_encoding_layer(model, inputs, initial_state):
+    """
+        @model:             the model
+        @inputs:            list (num_steps) of batch_size x hidden_size (any float type)
+        @initial_state:     batch_size x hidden_size (same as inputs float type)
+        @return:            (output, state)
+                            output: list (num_steps) of batch_size x hidden_size (same as inputs float type)
+                            state: final sate batch_size x hidden_size
+    """
     config = model.config
     inputs = tfdebug(config, inputs, message='ADD ENCODING IN')
 
@@ -40,3 +46,16 @@ def add_encoding(model, inputs, initial_state):
         output = tfdebug(config, inputs, message='ADD ENCODING OUT')
 
     return (output, state)
+
+def add_encoding(model, inputs):
+    config = model.config
+    if not hasattr(model, 'en_initial_states'):
+        model.en_inital_states = [tf.zeros([config.batch_size, config.en_hidden_size], dtype=model.dtype) for x in xrange(config.en_layers)]
+
+    output = add_embedding(model, inputs)
+
+
+
+    output, state = add_encoding_layer(model, output, state)
+
+    states = model.en_initial_states

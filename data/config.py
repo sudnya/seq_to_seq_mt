@@ -7,10 +7,15 @@ class Config(object):
   # embed_size = 100
   en_hidden_size = 100
   en_num_steps = 20
+  en_layers = 1
 
   # decoder
   de_hidden_size = 100
   de_num_steps = 20
+  de_layers = 1
+
+  # attention
+  at_hidden_size = 200
 
 
   batch_size = 64
@@ -19,3 +24,6 @@ class Config(object):
   dropout = 0.9
   lr = 0.001
   l2 = 0.001
+
+
+  dtype = tf.float32
