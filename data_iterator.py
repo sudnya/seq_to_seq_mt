@@ -1,34 +1,35 @@
 import numpy as np
 
+def padded_mini_b(data_slice, batch_size, max_len, dtype):
+    ret_data = np.zeroes([batch_size, max_len], dtype=dtype)
 
-def data_iterator(en_data, de_data, batch_size, num_steps, dtype=np.int32):
+    for i in range(data_slice):
+        #one sample
+        sample_len = data_slice[i]
+        ret_data   = [data_slice[x] for x in range(sample_len)]
+        
+
+
+def data_iterator(en_data, de_data, batch_size, dtype=np.int32):
+    # num_samples x ?
     en_data = np.array(en_data, dtype=dtype)
     de_data = np.array(de_data, dtype=dtype)
     
-    data_len = len(en_data)
 
-    assert data_len == len(de_data), 'encoder data length does not match decoder data length'
+    assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
+
+    total_buckets = len(en_data) // batch_size
+
+    max_len_for_each_bucket = []
+    for bucket in range(total_buckets):
+        
+        start = bucket * batch_size
+        end   = start + batch_size
+        
+        max_len_for_this_bucket = en_data[end - 1].shape[0] #last element in this miniB
+        
+        t_en_data[bucket] = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_bucket, dtype)
+        t_de_data[bucket] = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_bucket, dtype)
+
+        
     
-    len_per_batch = data_len // batch_size
-
-    t_en_data = np.zeroes([batch_size, len_per_batch], dtype=dtype)
-    t_de_data = np.zeroes([batch_size, len_per_batch], dtype=dtype)
-
-
-    for i in range(batch_size):
-        t_en_data[i] = en_data[len_per_batch * i : len_per_batch * (i+1)]
-        t_de_data[i] = de_data[len_per_batch * i : len_per_batch * (i+1)]
-
-    # we need to run at least 1 epoch and eg: 32 is len of sentence per batch and recurrence
-    # length i.e. time steps in RNN is 40 then we are in trouble since we will not have 
-    # sufficient length of words to go over
-    epochs = (len_per_batch - 1) // num_steps
-
-    assert epochs != 0 , "epochs == 0, decrease batch_size or num_steps"
-
-    # co iterate over encoder and decoder over stride of RNN length
-    for i in range(epochs):
-        x = t_en_data[:, i * num_steps : (i+1)*num_steps]
-        y = t_de_data[:, i * num_steps : (i+1)*num_steps]
-        yield(x,y)
-
