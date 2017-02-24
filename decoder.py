@@ -69,7 +69,7 @@ def add_decoding(model, inputs, initial_states):
         output.insert(0, token_embedding) 
 
 
-    for layer in xrange(config.de_layers):
+    for layer in xrange(config.layers):
         output, state = _add_decoding_layer(model, output, initial_states[layer], layer)
 
     return _add_projection(model, output)

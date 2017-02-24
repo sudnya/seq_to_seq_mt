@@ -14,7 +14,7 @@ sequence_loss = tf.contrib.seq2seq.sequence_loss
 # add_embedding = encoder.add_embedding
 
 
-def _make_initial_states(config):
+def _make_lstm_initial_states(config):
     return (tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
             tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype))
 
@@ -53,20 +53,19 @@ class S2SMTModel(LanguageModel):
         self.start_token = self.de_vocab_size - 1
 
     def add_placeholders(self):
-        self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='input')
+        self.en_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='input')
         self.de_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='labels')
-        #self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
     def add_embedding(self):
-        return encoder.add_embedding(self, self.input_placeholder)
+        return encoder.add_embedding(self, self.en_placeholder)
 
     def add_encoding(self, source):
-        initial_states = [_make_initial_states(self.config) for x in xrange(self.config.en_layers)]
+        initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         return encoder.add_encoding(self, source, initial_states)
 
     def add_decoding(self, target, encode_final_state):
-        initial_states = [_make_initial_states(self.config) for x in xrange(self.config.en_layers)]
+        initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encode_final_state
         return decoder.add_decoding(self, target, initial_states)
 
@@ -86,7 +85,7 @@ class S2SMTModel(LanguageModel):
         """
         feed_dict = {}
 
-        feed_dict[self.input_placeholder] = input_batch
+        feed_dict[self.en_placeholder] = input_batch
         # only in train mode will we have labels provided
         if label_batch is not None:
             feed_dict[self.de_placeholder] = label_batch
@@ -169,7 +168,7 @@ def test_encoder():
     ref_batch_size = t_model.config.batch_size
 
     ref_hidden_size = t_model.config.hidden_size
-    ref_layer_size = t_model.config.en_layers
+    ref_layer_size = t_model.config.layers
 
     t_inputs = t_model.add_embedding()
     assert len(t_inputs) == ref_num_steps

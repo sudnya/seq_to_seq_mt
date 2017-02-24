@@ -26,7 +26,7 @@ class DataLoader():
         test_samples = cfg.dev_samples
         dataType = cfg.enc_dtype
 
-        srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.__initializeFilenames__(cfg.lang_src, cfg.lang_tgt)
+        srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.__initializeFilenames__(cfg.source_lang, cfg.target_lang)
 
         self.src_vocab = self.Vocab(srcV, "source", cfg.vocab_max_size)
         self.tgt_vocab = self.Vocab(tgtV, "target", cfg.vocab_max_size)
