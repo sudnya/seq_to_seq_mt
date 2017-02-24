@@ -4,17 +4,20 @@ import tensorflow as tf
 
 from model import LanguageModel
 from config import Config
-from encoder import (add_encoding, add_embedding)
-from decoder import add_decoding
+import encoder
+# from decoder import add_decoding
 
 from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
+# add_encoding = encoder.add_encoding
+# add_embedding = encoder.add_embedding
 
 
 def _make_initial_states(config):
     return (tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
             tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype))
+
 
 class S2SMTModel(LanguageModel):
 
@@ -56,16 +59,16 @@ class S2SMTModel(LanguageModel):
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
     def add_embedding(self):
-        return add_embedding(self, self.input_placeholder)
+        return encoder.add_embedding(self, self.input_placeholder)
 
     def add_encoding(self, source):
         initial_states = [_make_initial_states(self.config) for x in xrange(self.config.en_layers)]
-        return add_encoding(self, source, initial_states)
+        return encoder.add_encoding(self, source, initial_states)
 
     def add_decoding(self, target, encode_final_state):
         initial_states = [_make_initial_states(self.config) for x in xrange(self.config.en_layers)]
         initial_states[0] = encode_final_state
-        return add_decoding(self, target, initial_states)
+        return decoder.add_decoding(self, target, initial_states)
 
     def add_attention(self):
         pass
@@ -163,23 +166,23 @@ def test_encoder():
     t_model = S2SMTModel()
     t_model.load_data()
 
-    ref_num_steps   = t_model.config.en_num_steps
-    ref_batch_size  = t_model.config.batch_size
+    ref_num_steps = t_model.config.en_num_steps
+    ref_batch_size = t_model.config.batch_size
 
     ref_hidden_size = t_model.config.hidden_size
-    ref_layer_size  = t_model.config.en_layers
+    ref_layer_size = t_model.config.en_layers
 
     t_inputs = t_model.add_embedding()
     assert len(t_inputs) == ref_num_steps
 
-
-    #20  x  <unknown> so cannot be verified
-    #print t_inputs[0].get_shape() , "woooo"
+    # 20  x  <unknown> so cannot be verified
+    # print t_inputs[0].get_shape() , "woooo"
     #assert t_inputs[0].get_shape() == (ref_batch_size, ref_hidden_size)
 
-    t_rnn_y, f_state      = t_model.add_encoding(t_inputs)
+    t_rnn_y, f_state = t_model.add_encoding(t_inputs)
     assert len(t_rnn_y) == ref_num_steps
     assert len(f_state) == ref_layer_size
+
 
 def test_decoder():
     pass
