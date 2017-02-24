@@ -22,7 +22,13 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
 
 
 def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np.int32):
+    
+    if de_data == None:
+        #predict mode, no refs here
+        logger.info("decoder data is None, which means we are in predict mode, so no references. creating face de_data for decoder")
+        de_data = [pad_token]*len(en_data)
     # num_samples x ?
+
     print len(en_data) , " with first entry ", en_data[0].shape
     print len(de_data) , " with first entry ", de_data[0].shape
 
@@ -72,20 +78,12 @@ def main():
         X_test.append(np.ones(col))
         Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
 
-<<<<<<< HEAD
     batch_size  = 4
     start_token = -999
     pad_token   = -888
     for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, start_token, pad_token)):
         print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
         
-=======
-    #print "X " , X_test
-    batch_size = 4
-    for i, (enc, dec_ref, dec_pred) in enumerate(data_iterator(X_test, Y_test, batch_size)):
-        print "enc \n", enc , " --- \ndec\n", dec
-
->>>>>>> 264b4a34dab0957c20b00500690a340c4b6e6e75
 
 
 if __name__ == '__main__':

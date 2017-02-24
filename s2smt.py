@@ -183,7 +183,7 @@ class S2SMTModel(LanguageModel):
         """
         pass
 
-    def predict(self, sess, input_data, input_labels=None):
+    def predict(self, sess, X, y=None):
         """Make predictions from the provided model.
         Args:
           sess: tf.Session()
@@ -193,7 +193,30 @@ class S2SMTModel(LanguageModel):
           average_loss: Average loss of model.
           predictions: Predictions of model on input_data
         """
-        raise NotImplementedError("Each Model must re-implement this method.")
+        # We deactivate dropout by setting it to 1
+        dp = 1
+        losses = []
+        results = []
+        
+        # train or test mode?
+        if np.any(y):
+            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+        else:
+            data = data_iterator(X, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+        
+        
+        for step, (x, y) in enumerate(data):
+            feed = self.create_feed_dict(input_batch=x, dropout=dp)
+            if np.any(y):
+                feed[self.labels_placeholder] = y
+                loss, preds                   = session.run( [self.loss, self.predictions], feed_dict=feed)
+                losses.append(loss)
+            else: #no loss
+                preds             = session.run(self.predictions, feed_dict=feed)
+                predicted_indices = preds.argmax(axis=1)
+                results.extend(predicted_indices)
+        
+        return np.mean(losses), predictions
 
 
 def translate_text(session, model, config, starting_text='<eos>',
