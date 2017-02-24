@@ -25,5 +25,8 @@ class Config(object):
   lr = 0.001
   l2 = 0.001
 
-
   dtype = tf.float32
+
+  # lang src is always in reverse
+  lang_src = 'vi'
+  lang_tgt = 'en'
