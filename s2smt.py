@@ -66,17 +66,6 @@ class S2SMTModel(LanguageModel):
         train_op = optimizer.minimize(loss)
 
 
-    def add_model(self, input_data):
-        """Implements core of model that transforms input_data into predictions.
-        The core transformation for this model which transforms a batch of input
-        data into a batch of predictions.
-
-        Args: input_data: A tensor of shape (batch_size, n_features).
-        Returns: out: A tensor of shape (batch_size, n_classes)
-        """
-        pass
-
-
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
         Args:
@@ -110,7 +99,7 @@ class S2SMTModel(LanguageModel):
             en_output, en_states = self.add_encoding(input_data)
             self.add_decoding()
 
-        return feed_dict
+        return rnn_outputs
 
 
 
@@ -173,14 +162,14 @@ class S2SMTModel(LanguageModel):
         return add_embedding(self, self.input_placeholder)
 
     def add_encoding(self, inputs):
-    """
-        @model:
-        @inputs:        (config.dtype)    list (num_steps) x batch_size x hidden_size
-        @initial_state: (config.dtype)    list (layers) x batch_size x hidden_size
-        @return:
-            output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
-            states:     (config.dtype)    list (layers) x batch_size x hidden_size
-    """
+        """
+            @model:
+            @inputs:        (config.dtype)    list (num_steps) x batch_size x hidden_size
+            @initial_state: (config.dtype)    list (layers) x batch_size x hidden_size
+            @return:
+                output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
+                states:     (config.dtype)    list (layers) x batch_size x hidden_size
+        """
         if not self.en_initial_states:
             self.en_initial_states = [tf.zeros([self.config.batch_size, self.config.en_hidden_size], dtype=self.config.dtype) for x in xrange(self.config.en_layers)]
         return add_encoding(self, inputs, self.en_initial_states)

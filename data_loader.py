@@ -12,7 +12,7 @@ import logging
 import numpy as np
 from collections import defaultdict
 from config import Config
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 logger = logging.getLogger('DataLoader')
@@ -114,11 +114,11 @@ class DataLoader():
     def plotLengths(self):
         z = [len(i) for i in self.tgt_encoded_train]
 
-        plt.hist(z, bins=400)
-        plt.title("Gaussian Histogram")
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
-        plt.show()
+        #plt.hist(z, bins=400)
+        #plt.title("Gaussian Histogram")
+        #plt.xlabel("Value")
+        #plt.ylabel("Frequency")
+        #plt.show()
 
     def getStats(self):
         srcTr = {}
