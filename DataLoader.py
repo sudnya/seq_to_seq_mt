@@ -34,7 +34,7 @@ class DataLoader():
 
         self.en_vocab_size = len(self.src_vocab)
         self.de_vocab_size = len(self.tgt_vocab)
-        
+
 
         #Train - src, rev_src, target (no need to reverse target)
         self.src_encoded_train = self.__loadEncodings__(srcTr, dataType, train_samples)
@@ -42,11 +42,11 @@ class DataLoader():
 
         self.src_encoded_train_rev = self.__loadReverseEncodings__(srcTr, dataType, train_samples)
         logger.info("reversed source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train_rev)))
-        
+
         self.tgt_encoded_train = self.__loadEncodings__(tgtTr, dataType, train_samples)
         logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
 
-        
+
         #dev - src, rev_src, target (no need to reverse target)
         self.src_encoded_dev = self.__loadEncodings__(srcDev, dataType, dev_samples)
         logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
@@ -61,10 +61,10 @@ class DataLoader():
         #test - src, target - No need to rev test data
         self.src_encoded_test = self.__loadEncodings__(srcTest, dataType, test_samples)
         logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
-        
+
         self.src_encoded_test_rev = self.__loadReverseEncodings__(srcTest, dataType, test_samples)
         logger.info("reversed test training samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test_rev)))
-        
+
         self.tgt_encoded_test = self.__loadEncodings__(tgtTest, dataType, test_samples)
         logger.info("target test samples expected: " + str(test_samples) + " created " + str(len(self.tgt_encoded_test)))
 
@@ -113,6 +113,15 @@ class DataLoader():
         logger.debug("reverse training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
+    def plotLengths(self):
+        z = [len(i) for i in self.tgt_encoded_train]
+
+        plt.hist(z, bins=400)
+        plt.title("Gaussian Histogram")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
+        plt.show()
+
     def getStats(self):
         srcTr = {}
         tgtTr = {}
@@ -136,6 +145,7 @@ class DataLoader():
         logger.info("Source train stats")
         for k, v in tgtTr.iteritems():
             logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
+
         #plt.hist(tgtTr)
         #plt.title("Histogram")
         #plt.xlabel("Value")
@@ -144,6 +154,7 @@ class DataLoader():
         #fig = plt.gcf()
 
         #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
+
 
 
 
@@ -191,12 +202,12 @@ class DataLoader():
 def main():
     parser = argparse.ArgumentParser(description="DataLoader")
     parser.add_argument("-v", "--verbose", default = False, action = "store_true")
-    
+
     parsedArguments = parser.parse_args()
     arguments = vars(parsedArguments)
 
     isVerbose   = arguments['verbose']
-    
+
     if isVerbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -214,7 +225,8 @@ def main():
     logger.info ("Source " + viVocab + " target " + enVocab)
     cfg = Config()
     d = DataLoader(cfg)
-    d.getStats()
-    
+    # d.getStats()
+    d.plotLengths()
+
 if __name__ == '__main__':
     main()
