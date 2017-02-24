@@ -4,8 +4,8 @@ import random
 
 import numpy as np
 
-def padded_mini_b(data_slice, batch_size, max_len, dtype):
-    ret_data = np.zeros([batch_size, max_len], dtype=dtype)
+def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
+    ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
 
     for i in range(batch_size):
         #one sample
@@ -21,33 +21,30 @@ def padded_mini_b(data_slice, batch_size, max_len, dtype):
         
 
 
-def data_iterator(en_data, de_data, batch_size, dtype=np.int32):
+def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np.int32):
     # num_samples x ?
     print len(en_data) , " with first entry ", en_data[0].shape
     print len(de_data) , " with first entry ", de_data[0].shape
 
-    #en_data = np.array(en_data, dtype=dtype)
-    #de_data = np.array(de_data, dtype=dtype)
-    
-
     assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
-    total_buckets = len(en_data) // batch_size
+    total_batches = len(en_data) // batch_size
 
-    max_len_for_each_bucket = []
-    t_en_data = []
-    t_de_data = []
-
-    for bucket in range(total_buckets):
+    for batch in range(total_batches):
         
-        start = bucket * batch_size
+        start = batch * batch_size
         end   = start + batch_size
         
-        max_len_for_this_bucket = en_data[end - 1].shape[0] #last element in this miniB
+        max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
         
-        t_en_data.append(padded_mini_b(en_data[start:end], batch_size, max_len_for_this_bucket, dtype))
-        t_de_data.append(padded_mini_b(de_data[start:end], batch_size, max_len_for_this_bucket, dtype))
-        yield(t_en_data, t_de_data)
+        t_en_batch = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, pad_token, dtype)
+        t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, pad_token, dtype)
+
+        t_de_ref_batch = np.zeros(shape=(batch_size, max_len_for_this_batch))
+        t_de_ref_batch[:, 1:] = t_de_pred_batch[:, :-1]
+        t_de_ref_batch[:, 0]  = start_token
+
+        yield(t_en_batch, t_de_ref_batch, t_de_pred_batch)
     
 
         
@@ -74,10 +71,11 @@ def main():
         X_test.append(np.ones(col))
         Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
 
-    #print "X " , X_test
-    batch_size = 4
-    for i, (enc, dec) in enumerate(data_iterator(X_test, Y_test, batch_size)):
-        print "enc \n", enc , " --- \ndec\n", dec
+    batch_size  = 4
+    start_token = -999
+    pad_token   = -888
+    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, start_token, pad_token)):
+        print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
         
 
 
