@@ -65,7 +65,10 @@ class S2SMTModel(LanguageModel):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
         train_op = optimizer.minimize(loss)
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> 9d5e4a93ad37f143b090e57470b696d87da8bb2a
     def create_feed_dict(self, input_batch, label_batch):
         """Creates the feed_dict for training the given step.
         Args:
@@ -92,16 +95,14 @@ class S2SMTModel(LanguageModel):
         """
         rnn_outputs = []
         # (config.dtype)      list (num_steps) x batch_size x hidden_size
-        embeddings  = self.add_embedding()
+        embeddings = self.add_embedding()
         with tf.variable_scope('S2SMT') as scope:
-            #output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
-            #states:     (config.dtype)    list (layers) x batch_size x hidden_size
+            # output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
+            # states:     (config.dtype)    list (layers) x batch_size x hidden_size
             en_output, en_states = self.add_encoding(input_data)
             self.add_decoding()
 
         return rnn_outputs
-
-
 
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
@@ -152,7 +153,6 @@ class S2SMTModel(LanguageModel):
         """
         raise NotImplementedError("Each Model must re-implement this method.")
 
-
     def add_embedding(self):
         """
             @model:
@@ -186,7 +186,6 @@ class S2SMTModel(LanguageModel):
     def add_training_op(self, loss):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
         train_op = optimizer.minimize(loss)
-
 
 
 def generate_text(session, model, config, starting_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
