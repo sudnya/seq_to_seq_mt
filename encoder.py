@@ -15,7 +15,7 @@ def add_embedding(model, inputs):
     config = model.config
 
     with tf.variable_scope('EmbeddingLayer'):
-        w2v = tf.get_variable('w2v', [model.en_vocab_size, config.hidden_size], initializer=xavier_init)
+        w2v = tf.get_variable('w2v', [config.en_vocab_size, config.hidden_size], initializer=xavier_init)
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
         output = tf.split(output, tf.ones(config.en_num_steps, dtype=tf.int32), axis=1)
         output = map(tf.squeeze, output)

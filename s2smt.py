@@ -10,7 +10,7 @@ from encoder import add_encoding
 from encoder import add_embedding
 from decoder import add_decoding
 
-from utils import calculate_perplexity
+from util import calculate_perplexity
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
 
