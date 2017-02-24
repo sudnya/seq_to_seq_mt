@@ -72,20 +72,13 @@ def main():
         X_test.append(np.ones(col))
         Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
 
-<<<<<<< HEAD
-    batch_size  = 4
-    start_token = -999
-    pad_token   = -888
-    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, start_token, pad_token)):
-        print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
-        
-=======
+
     #print "X " , X_test
     batch_size = 4
     for i, (enc, dec_ref, dec_pred) in enumerate(data_iterator(X_test, Y_test, batch_size)):
         print "enc \n", enc , " --- \ndec\n", dec
 
->>>>>>> 264b4a34dab0957c20b00500690a340c4b6e6e75
+
 
 
 if __name__ == '__main__':

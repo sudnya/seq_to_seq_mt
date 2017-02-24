@@ -52,6 +52,7 @@ def _add_decoding_layer(model, inputs, initial_state, layer):
     """
     config = model.config
     state = initial_state
+    print state
     output = []
 
     with tf.variable_scope('DecodingLayer' + str(layer)):
@@ -63,7 +64,7 @@ def _add_decoding_layer(model, inputs, initial_state, layer):
     return (output, state)
 
 
-def add_decoding(model, inputs, initial_states):
+def add_decoding(model, initial_states, de_ref):
     """
         @model:         seq2seq model
         @input:         list (batch_size, hidden_size)
@@ -72,10 +73,10 @@ def add_decoding(model, inputs, initial_states):
     """
 
     config = model.config
-    output = inputs
+    print "in", (initial_states)
 
-    if config.train:
-        output = add_embedding(model, inputs)
+    output = add_embedding(model, de_ref)
+
 
     for layer in xrange(config.layers):
         output, state = _add_decoding_layer(model, output, initial_states[layer], layer)
