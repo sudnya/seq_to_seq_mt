@@ -27,7 +27,16 @@ class S2SMTModel(LanguageModel):
     def __init__(self, config):
         self.en_initial_states = None
         self.config = config
+        self.load_data(debug=False)
         self.add_placeholders()
+        self.outputs = self.add_model()
+
+        self.predictions = [tf.nn.softmax(tf.cast(o, 'float64')) for o in self.outputs]
+
+        self.calculate_loss = self.add_loss_op(self.outputs)
+        self.train_step = self.add_training_op(self.calculate_loss)
+
+
 
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
@@ -119,7 +128,7 @@ class S2SMTModel(LanguageModel):
         pred_logits = tf.stack(pred_logits, axis=1)
 
         # targets should be Tensor[batch_size x de_num_steps]
-        targets = self.de_placeholder
+        targets = self.de_pred_placeholder
 
         weights = tf.ones([self.config.batch_size, self.config.de_num_steps])
 
@@ -130,9 +139,6 @@ class S2SMTModel(LanguageModel):
         tf.add_to_collection('total_loss', loss)
 
         return loss
-
-    def train_step(self):
-        pass
 
     def run_epoch(self, session, en_data, de_data, train_op=None, verbose=10):
         """Runs an epoch of training.  Trains the model for one-epoch.
@@ -154,12 +160,12 @@ class S2SMTModel(LanguageModel):
 
         state = self.initial_state.eval()
 
-        for step, (x, y) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.np_raw_dtype)):
+        for step, (en_batch, de_ref_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
-            feed = {self.input_placeholder: x,
-                    self.labels_placeholder: y,
-                    self.initial_state: state,
+            feed = {self.en_placeholder: en_batch,
+                    self.de_ref_placeholder: de_ref_batch,
+                    self.de_prod_placeholder: de_prod_batch,
                     self.dropout_placeholder: dp}
 
             loss, state, _ = session.run(
@@ -173,7 +179,7 @@ class S2SMTModel(LanguageModel):
             sys.stdout.write('\r')
         return np.exp(np.mean(total_loss))
 
-    def fit(self, sess, input_data, input_labels):
+    def fit(self, sess, X, y):
         """Fit model on provided data.
         Args:
           sess: tf.Session()
@@ -181,9 +187,22 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: losses: list of loss per epoch
         """
-        pass
+        losses = []
+        
+        if np.any(y):
+            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+        
+        for step, (x, y) in enumerate(data):
+            feed = self.create_feed_dict(input_batch=x, dropout=dp)
+            if np.any(y):
+                feed[self.labels_placeholder] = y
+                loss, preds                   = session.run( [self.loss, self.predictions], feed_dict=feed)
+                losses.append(loss)
+        
+        return losses
 
-    def predict(self, sess, input_data, input_labels=None):
+
+    def predict(self, sess, X, y=None):
         """Make predictions from the provided model.
         Args:
           sess: tf.Session()
@@ -193,7 +212,30 @@ class S2SMTModel(LanguageModel):
           average_loss: Average loss of model.
           predictions: Predictions of model on input_data
         """
-        raise NotImplementedError("Each Model must re-implement this method.")
+        # We deactivate dropout by setting it to 1
+        dp = 1
+        losses = []
+        results = []
+
+        # train or test mode?
+        if np.any(y):
+            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+        else:
+            data = data_iterator(X, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+
+
+        for step, (x, y) in enumerate(data):
+            feed = self.create_feed_dict(input_batch=x, dropout=dp)
+            if np.any(y):
+                feed[self.labels_placeholder] = y
+                loss, preds                   = session.run( [self.loss, self.predictions], feed_dict=feed)
+                losses.append(loss)
+            else: #no loss
+                preds             = session.run(self.predictions, feed_dict=feed)
+                predicted_indices = preds.argmax(axis=1)
+                results.extend(predicted_indices)
+
+        return np.mean(losses), predictions
 
 
 def translate_text(session, model, config, starting_text='<eos>',

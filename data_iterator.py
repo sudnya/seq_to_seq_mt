@@ -10,19 +10,21 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
     for i in range(batch_size):
         #one sample
         sample_len  = data_slice[i].shape[0]
-        print sample_len , " vs. ", max_len
         assert sample_len <= max_len, " sample length can never be greater than max length allowed "
-        #print "sample has ", sample_len, " words"
-        #print "data slice is ", data_slice[i][:sample_len]
 
         ret_data[i][:sample_len] = data_slice[i][:sample_len]
-        #print "over wrote as ", ret_data[i]
     return ret_data
 
 
 
-def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np.int32):
+def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, start_token, dtype=np.int32):
+    
+    if de_data == None:
+        #predict mode, no refs here
+        logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
+        de_data = [pad_token]*len(en_data)
     # num_samples x ?
+
     print len(en_data) , " with first entry ", en_data[0].shape
     print len(de_data) , " with first entry ", de_data[0].shape
 
@@ -37,10 +39,11 @@ def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np
         
         max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
         
-        t_en_batch = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, pad_token, dtype)
-        t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, pad_token, dtype)
-
-        t_de_ref_batch = np.zeros(shape=(batch_size, max_len_for_this_batch))
+        t_en_batch      = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
+        t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
+        
+        t_de_ref_batch  = np.zeros(shape=(batch_size, max_len_for_this_batch))
+        
         t_de_ref_batch[:, 1:] = t_de_pred_batch[:, :-1]
         t_de_ref_batch[:, 0]  = start_token
 
@@ -73,11 +76,14 @@ def main():
         Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
 
 
-    #print "X " , X_test
-    batch_size = 4
-    for i, (enc, dec_ref, dec_pred) in enumerate(data_iterator(X_test, Y_test, batch_size)):
-        print "enc \n", enc , " --- \ndec\n", dec
+    batch_size   = 4
+    start_token  = -999
+    en_pad_token = -888
+    de_pad_token = -555
 
+    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, start_token)):
+        print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
+        
 
 
 
