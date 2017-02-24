@@ -29,8 +29,11 @@ class DataLoader():
 
         srcV, tgtV, srcTr, tgtTr, srcDev, tgtDev, srcTest, tgtTest = self.initialize_filenames(cfg.lang_src, cfg.lang_tgt)
 
-        self.vocab_source = self.Vocab(srcV, "source")
-        self.vocab_target = self.Vocab(tgtV, "target")
+        self.src_vocab = self.Vocab(srcV, "source")
+        self.tgt_vocab = self.Vocab(tgtV, "target")
+
+        self.en_vocab_size = len(self.src_vocab)
+        self.de_vocab_size = len(self.tgt_vocab)
         
 
         #Train - src, rev_src, target (no need to reverse target)
@@ -86,7 +89,7 @@ class DataLoader():
                 break
             else:
                 words = line.split()
-                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=data_type))
+                encoded_train.append(np.array( [self.src_vocab.encode(word) for word in words], dtype=data_type))
 
                 totalSamples += 1
         #logger.debug(encoded_train)
@@ -103,7 +106,7 @@ class DataLoader():
             else:
                 words = line.split()
                 words.reverse()
-                encoded_train.append(np.array( [self.vocab_source.encode(word) for word in words], dtype=data_type))
+                encoded_train.append(np.array( [self.src_vocab.encode(word) for word in words], dtype=data_type))
                 totalSamples += 1
         #logger.debug(encoded_train)
         #logger.info(encoded_train[0])
