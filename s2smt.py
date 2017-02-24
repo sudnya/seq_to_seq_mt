@@ -1,8 +1,7 @@
 import tensorflow as tf
 from model import LanguageModel
 from config import Config
-from encoder import add_embedding, add_encoding
-from encoder import add_decoding
+from encoder import *
 from data_loader import DataLoader
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
@@ -13,6 +12,8 @@ class S2SMTModel(LanguageModel):
     def __init__(self):
         self.en_initial_states = None
         self.config = Config()
+        self.add_placeholders()
+
 
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
@@ -39,11 +40,13 @@ class S2SMTModel(LanguageModel):
         self.de_vocab_size = data_loader.de_vocab_size + 1
 
         self.start_token = self.de_vocab_size - 1
+        
 
     def add_placeholders(self):
+        self.input_placeholder = 1
         self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='input')
         self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=[None, None], name='labels')
-        self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
+        #self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
     def add_embedding(self):
@@ -92,7 +95,7 @@ class S2SMTModel(LanguageModel):
         outputs = []
 
         with tf.variable_scope('S2SMT') as scope:
-            en_output, en_final_states = self.add_encoding(self.add_embedding(self.source_placeholder))
+            en_output, en_final_states = self.add_encoding(self.add_embedding(self.input_placeholder))
             de_output, de_final_states = self.add_decoding(self.labels_placeholder)
 
         return outputs
@@ -116,6 +119,7 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
+        #TODO: update self.config.num_steps per minibatch
         pass
 
     def fit(self, sess, input_data, input_labels):
@@ -145,5 +149,40 @@ def generate_text(session, model, config, starting_text='<eos>', stop_length=100
     pass
 
 
-def _test_S2SMTModel():
+def test_S2SMTModel():
     pass
+
+def test_encoder():
+    t_model  = S2SMTModel()
+    t_model.load_data()
+    t_inputs = t_model.add_embedding()
+    t_X      = t_model.add_encoding(t_inputs)
+
+def test_decoder():
+    pass
+
+def run_tests():
+    test_encoder()
+    test_decoder()
+    test_S2SMTModel()
+
+def main():
+    parser = argparse.ArgumentParser(description="Sequence to sequence machine translation model")
+    parser.add_argument("-v", "--verbose", default=False, action="store_true")
+
+    parsedArguments = parser.parse_args()
+    arguments       = vars(parsedArguments)
+    isVerbose       = arguments['verbose']
+
+    if isVerbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    
+    run_tests()
+
+
+if __name__ == '__main__':
+    main()
+
+
