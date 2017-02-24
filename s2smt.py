@@ -38,11 +38,11 @@ class S2SMTModel(LanguageModel):
         self.de_vocab_size = data_loader.de_vocab_size
 
     def add_placeholders(self):
-        self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='input')
-        self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
-        self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
-
-
+        config = self.config
+        self.input_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='input')
+        self.labels_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='labels')
+        self.num_steps = tf.placeholder(tf.int32, name='num_steps')
+        self.dropout_placeholder = tf.placeholder(config.dtype, name='dropout')
 
     def add_embedding(self):
         return add_embedding(self, self.input_placeholder)
