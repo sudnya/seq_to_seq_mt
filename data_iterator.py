@@ -21,7 +21,7 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
 
 
 
-def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np.int32):
+def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, start_token, dtype=np.int32):
     
     if de_data == None:
         #predict mode, no refs here
@@ -43,8 +43,8 @@ def data_iterator(en_data, de_data, batch_size, start_token, pad_token, dtype=np
         
         max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
         
-        t_en_batch = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, pad_token, dtype)
-        t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, pad_token, dtype)
+        t_en_batch = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
+        t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
 
         t_de_ref_batch = np.zeros(shape=(batch_size, max_len_for_this_batch))
         t_de_ref_batch[:, 1:] = t_de_pred_batch[:, :-1]
@@ -78,10 +78,12 @@ def main():
         X_test.append(np.ones(col))
         Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
 
-    batch_size  = 4
-    start_token = -999
-    pad_token   = -888
-    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, start_token, pad_token)):
+    batch_size   = 4
+    start_token  = -999
+    en_pad_token = -888
+    de_pad_token = -555
+
+    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, start_token)):
         print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
         
 
