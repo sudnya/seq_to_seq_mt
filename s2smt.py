@@ -41,7 +41,7 @@ class S2SMTModel(LanguageModel):
         config = self.config
         self.input_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='input')
         self.labels_placeholder = tf.placeholder(config.input_dtype, shape=[None, None], name='labels')
-        self.num_steps = tf.placeholder(tf.int32, name='num_steps')
+        self.num_steps_placeholder = tf.placeholder(tf.int32, name='num_steps')
         self.dropout_placeholder = tf.placeholder(config.dtype, name='dropout')
 
     def add_embedding(self):
@@ -101,18 +101,13 @@ class S2SMTModel(LanguageModel):
         return rnn_outputs
 
     def add_loss_op(self, pred):
-        """Adds ops for loss to the computational graph.
-        Args: pred: A tensor of shape (batch_size, n_classes)
-        Returns: loss: A 0-d tensor (scalar) output
-        """
-        targets = [tf.reshape(self.labels_placeholder, [-1])]
-        target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.config.num_steps])
-        w = tf.ones([self.config.batch_size, self.config.num_steps])
-        pred_logits = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
-
-        loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
+        batch_size = self.config.batch_size
+        target_labels = tf.reshape(self.labels_placeholder, [batch_size, self.num_steps_placeholder])
+        weights = tf.ones([batch_size, self.num_steps_placeholder])
+        pred_logits = tf.reshape(pred, [batch_size, self.num_steps_placeholder, self.de_vocab_size])
+        loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=weights)
         
-        self.sMax = tf.nn.softmax(f)
+        self.sMax = tf.nn.softmax(pred_logits)
 
         tf.add_to_collection('total_loss', loss)
 
@@ -149,40 +144,6 @@ class S2SMTModel(LanguageModel):
           predictions: Predictions of model on input_data
         """
         raise NotImplementedError("Each Model must re-implement this method.")
-
-    def add_embedding(self):
-        """
-            @model:
-            @inputs:        (int32)             batch_size x num_steps
-            @return:        (config.dtype)      list (num_steps) x batch_size x hidden_size
-        """
-        return add_embedding(self, self.input_placeholder)
-
-    def add_encoding(self, inputs):
-        """
-            @model:
-            @inputs:        (config.dtype)    list (num_steps) x batch_size x hidden_size
-            @initial_state: (config.dtype)    list (layers) x batch_size x hidden_size
-            @return:
-                output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
-                states:     (config.dtype)    list (layers) x batch_size x hidden_size
-        """
-        if not self.en_initial_states:
-            self.en_initial_states = [tf.zeros([self.config.batch_size, self.config.en_hidden_size], dtype=self.config.dtype) for x in xrange(self.config.en_layers)]
-        return add_encoding(self, inputs, self.en_initial_states)
-
-    def add_decoding(self):
-        """
-            @return (output, final_states)
-        """
-        pass
-
-    def add_attention(self):
-        pass
-
-    def add_training_op(self, loss):
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr)
-        train_op = optimizer.minimize(loss)
 
 
 def generate_text(session, model, config, starting_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):
