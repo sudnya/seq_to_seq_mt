@@ -1,5 +1,3 @@
-import getpass
-
 import argparse
 import logging
 import time
@@ -10,15 +8,23 @@ from s2smt import S2SMTModel
 from s2smt import translate_sentence
 
 
+def run_translator(session, translate_model, trans_config):
+    en_text = 'Welcome!'
+    while en_text:
+        print ' '.join(translate_sentence(
+            session, translate_model, trans_config, en_text=en_text, temp=1.0))
+        en_text = raw_input('> ')
+
+
 def test_S2SMTModel():
     config = Config()
     trans_config = Config()
     trans_config.batch_size = trans_config.num_steps = 1
 
-    # We create the training model and translateerative model
+    # Create model for training
     with tf.variable_scope('RNNLM', reuse=None) as scope:
         model = S2SMTModel(config)
-    # This instructs translate_model to reuse the same variables as the model above
+    # Create translate_model to use the same parameters as training result
     with tf.variable_scope('RNNLM', reuse=True) as scope:
         translate_model = S2SMTModel(trans_config)
 
@@ -35,8 +41,7 @@ def test_S2SMTModel():
             print 'Epoch {}'.format(epoch)
             start = time.time()
             ###
-            train_pp = model.run_epoch(session, model.en_train, model.de_train,
-                train_op=model.train_step)
+            train_pp = model.run_epoch(session, model.en_train, model.de_train, train_op=model.train_step)
 
             valid_pp = model.run_epoch(session, model.en_dev, model.de_dev)
 
@@ -51,15 +56,13 @@ def test_S2SMTModel():
             print 'Total time: {}'.format(time.time() - start)
 
         saver.restore(session, 'ptb_rnnlm.weights')
+
         test_pp = model.run_epoch(session, model.en_test, model.de_test)
         print '=-=' * 5
-        print 'Test perplexity: {}'.format(test_pp)
+        print 'Translator test perplexity: {}'.format(test_pp)
         print '=-=' * 5
-        en_text = 'in palo alto'
-        while en_text:
-            print ' '.join(translate_sentence(
-                session, translate_model, trans_config, en_text=en_text, temp=1.0))
-            starting_text = raw_input('> ')
+
+        run_translator(session, translate_model, trans_config)
 
 
 def test_encoder():
@@ -92,8 +95,6 @@ def run_tests():
     test_encoder()
     test_decoder()
     test_S2SMTModel()
-
-
 
 
 def main():
