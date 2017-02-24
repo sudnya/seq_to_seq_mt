@@ -1,5 +1,7 @@
-
+import tensorflow as tf
 from model import LanguageModel
+
+from encoder import add_embedding, add_encoding
 
 
 class S2SMTModel(LanguageModel):
@@ -7,13 +9,17 @@ class S2SMTModel(LanguageModel):
         pass
 
     def add_placeholders(self):
-        pass
+        config = self.config
+        self.input_placeholder = tf.placeholder(config.enc_dtype, shape=(None, self.config.num_steps), name='input')
+        self.labels_placeholder = tf.placeholder(config.enc_dtype, shape=(None, self.config.num_steps), name='labels')
+        self.dropout_placeholder = tf.placeholder(config.dtype, name='dropout')
+
 
     def add_embedding(self):
-        pass
+        return add_embedding(self, self.input_placeholder)
 
-    def add_encoding(self):
-        pass
+    def add_encoding(self, inputs):
+        return add_encoding(self, inputs)
 
     def add_decoding(self):
         pass

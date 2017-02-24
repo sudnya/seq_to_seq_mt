@@ -33,7 +33,7 @@ def add_encoding_layer(model, inputs, initial_state):
         @initial_state:     (config.dtype)    batch_size x hidden_size
         @return:            (output, state)
                             output: (config.dtype)    list (num_steps) of batch_size x hidden_size
-                            state:  (config.dtype)    final sate batch_size x hidden_size
+                            state:  (config.dtype)    final state for this layer batch_size x hidden_size
     """
     config = model.config
     inputs = tfdebug(config, inputs, message='ADD ENCODING IN')
@@ -51,7 +51,7 @@ def add_encoding_layer(model, inputs, initial_state):
 
     return (output, state)
 
-def add_encoding(model, inputs):
+def add_encoding(model, inputs, inputs_states):
     """
         @model:     the s2smt model
         @inputs:    (int32) batch_size x num_steps
@@ -75,4 +75,7 @@ def add_encoding(model, inputs):
         final_states.append(state)
 
     model.en_final_states = final_states
-    return output, final_states[-1]
+    return output, state
+
+def _test():
+    pass
