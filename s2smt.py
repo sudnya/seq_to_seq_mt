@@ -9,7 +9,7 @@ class S2SMTModel(LanguageModel):
 
     def __init__(self):
         self.en_initial_states = None
-        self.config            = Config
+        self.config            = Config()
 
 
     def load_data(self, debug=False):
