@@ -140,9 +140,6 @@ class S2SMTModel(LanguageModel):
 
         return loss
 
-    def train_step(self):
-        pass
-
     def run_epoch(self, session, en_data, de_data, train_op=None, verbose=10):
         """Runs an epoch of training.  Trains the model for one-epoch.
         Args:
@@ -206,14 +203,14 @@ class S2SMTModel(LanguageModel):
         dp = 1
         losses = []
         results = []
-        
+
         # train or test mode?
         if np.any(y):
             data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
         else:
             data = data_iterator(X, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
-        
-        
+
+
         for step, (x, y) in enumerate(data):
             feed = self.create_feed_dict(input_batch=x, dropout=dp)
             if np.any(y):
@@ -224,7 +221,7 @@ class S2SMTModel(LanguageModel):
                 preds             = session.run(self.predictions, feed_dict=feed)
                 predicted_indices = preds.argmax(axis=1)
                 results.extend(predicted_indices)
-        
+
         return np.mean(losses), predictions
 
 
