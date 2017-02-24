@@ -25,18 +25,18 @@ def add_embedding(model, inputs, step=False):
 
 def _add_projection(model, inputs):
     """
-        @model: 
+        @model:
         @inputs:        (config.dtype)      list (num_steps) of batch size x hidden_size
         @return:        (config.dytpe)      list (num_steps) of batch_size x de_vocab_size
 
     """
-    with tf.variable_scope("ProjectionLayer"): 
+    with tf.variable_scope("ProjectionLayer"):
         U = tf.get_variable("U", (config.hidden_size, config.de_vocab_size), dtype=tf.float32)
         b_2 = tf.Variable(tf.zeros(config.de_vocab_size), dtype=tf.float32)
 
         outputs = []
 
-        for i in range (config.de_num_steps): 
+        for i in range (config.de_num_steps):
             outputs.append(tf.matmul(inputs[i], U) + b_2)
     return outputs
 
