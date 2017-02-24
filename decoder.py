@@ -13,7 +13,7 @@ def add_embedding(model, inputs, step=False):
     """
     config = model.config
 
-    with tf.variable_scope('EmbeddingLayer'):
+    with tf.variable_scope('DecodingEmbeddingLayer'):
         w2v = tf.get_variable('w2v', [config.de_vocab_size, config.batch_size], initializer=xavier_init)
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
         if not step:
@@ -76,12 +76,6 @@ def add_decoding(model, inputs, initial_states):
 
     if config.train:
         output = add_embedding(model, inputs)
-        output.pop()
-        token_embedding = tf.ones([config.batch_size, config.hidden_size], dtype=tf.int32) * model.start_token
-        token_embedding = add_embedding(model, token_embedding, step=True)
-
-        output.insert(0, token_embedding) 
-
 
     for layer in xrange(config.layers):
         output, state = _add_decoding_layer(model, output, initial_states[layer], layer)
