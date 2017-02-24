@@ -1,6 +1,13 @@
 import argparse
 import logging
 import tensorflow as tf
+import numpy as np
+import getpass
+import sys
+import time
+from copy import deepcopy
+
+from utils import calculate_perplexity
 
 from config import Config
 from model import LanguageModel
@@ -123,8 +130,35 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
-        # TODO: update self.config.num_steps per minibatch
-        pass
+        config = self.config
+        dp = config.dropout
+
+        if not train_op:
+            train_op = tf.no_op()
+            dp = 1
+        total_steps = sum(1 for x in ptb_iterator(data, config.batch_size, config.num_steps))
+        total_loss = []
+
+        state = self.initial_state.eval()
+
+        for step, (x, y) in enumerate(ptb_iterator(data, config.batch_size, config.num_steps)):
+            # We need to pass in the initial state and retrieve the final state to give
+            # the RNN proper history
+            feed = {self.input_placeholder: x,
+                    self.labels_placeholder: y,
+                    self.initial_state: state,
+                    self.dropout_placeholder: dp}
+
+            loss, state, _ = session.run(
+                [self.calculate_loss, self.final_state, train_op], feed_dict=feed)
+            total_loss.append(loss)
+            if verbose and step % verbose == 0:
+                sys.stdout.write('\r{} / {} : pp = {}'.format(
+                    step, total_steps, np.exp(np.mean(total_loss))))
+                sys.stdout.flush()
+        if verbose:
+            sys.stdout.write('\r')
+        return np.exp(np.mean(total_loss))
 
     def fit(self, sess, input_data, input_labels):
         """Fit model on provided data.
