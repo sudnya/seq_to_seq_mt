@@ -155,7 +155,13 @@ def test_S2SMTModel():
 def test_encoder():
     t_model  = S2SMTModel()
     t_model.load_data()
+    ref_num_steps   = t_model.config.num_steps 
+    ref_batch_size  = t_model.config.batch_size
+    ref_hidden_size = t_model.config.hidden_size
+
     t_inputs = t_model.add_embedding()
+    assert len(t_inputs) == ref_num_steps
+
     t_X      = t_model.add_encoding(t_inputs)
 
 def test_decoder():
