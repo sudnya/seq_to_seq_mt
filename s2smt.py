@@ -114,7 +114,7 @@ class S2SMTModel(LanguageModel):
         pred_logits = tf.reshape(pred, [self.config.batch_size, self.config.num_steps, self.en_vocab_size])
 
         loss = sequence_loss(logits=pred_logits, targets=target_labels, weights=w)
-        self.sMax = tf.nn.softmax(f)
+        self.sMax = tf.nn.softmax(pred_logits)
 
         tf.add_to_collection('total_loss', loss)
 
