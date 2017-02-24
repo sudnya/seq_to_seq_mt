@@ -3,8 +3,6 @@ import tensorflow as tf
 LSTMCell = tf.contrib.rnn.BasicLSTMCell
 xavier_init = tf.contrib.layers.xavier_initializer()
 
-tfdebug = util.tfdebug
-
 # TODO set hidden_size equal to hidden_size and fixed for all layers (future proof for residuals)
 
 

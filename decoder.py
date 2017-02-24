@@ -65,7 +65,8 @@ def add_decoding(model, inputs, initial_states):
         output.pop()
         token_embedding = tf.ones([config.batch_size, config.hidden_size], dtype=tf.int32) * model.start_token
         token_embedding = add_embedding(model, token_embedding, step=True)
-        output.insert(0, token_embedding)
+
+        output.insert(0, token_embedding) 
 
 
     for layer in xrange(config.de_layers):
