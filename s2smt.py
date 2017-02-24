@@ -16,9 +16,9 @@ class S2SMTModel(LanguageModel):
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
 
-        self.en_train = data_loader.src_encoded_train_res
-        self.en_dev = data_loader.src_encoded_dev_res
-        self.en_test = data_loader.src_encoded_test_res
+        self.en_train = data_loader.src_encoded_train_rev
+        self.en_dev = data_loader.src_encoded_dev_rev
+        self.en_test = data_loader.src_encoded_test_rev
 
         self.de_train = data_loader.tgt_encoded_train
         self.de_dev = data_loader.tgt_encoded_dev
@@ -90,7 +90,7 @@ class S2SMTModel(LanguageModel):
         # only in train mode will we have labels provided
         if label_batch is not None:
             feed_dict[self.labels_placeholder] = label_batch
-        
+
         return feed_dict
 
     def add_model(self, input_data):
@@ -112,8 +112,8 @@ class S2SMTModel(LanguageModel):
 
         return feed_dict
 
-    
-    
+
+
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
         Args: pred: A tensor of shape (batch_size, n_classes)
