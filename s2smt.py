@@ -38,8 +38,8 @@ class S2SMTModel(LanguageModel):
 
 
     def add_placeholders(self):
-        self.input_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='input')
-        self.labels_placeholder = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
+        self.input_placeholder   = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='input')
+        self.labels_placeholder  = tf.placeholder(self.config.input_dtype, shape=(None, self.config.num_steps), name='labels')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
 
@@ -48,39 +48,32 @@ class S2SMTModel(LanguageModel):
         Args:
           input_batch: A batch of input data.
           label_batch: A batch of label data.
-        Returns:
-          feed_dict: The feed dictionary mapping from placeholders to values.
+        Returns: feed_dict: The feed dictionary mapping from placeholders to values.
         """
         feed_dict = {}
 
         feed_dict[self.input_placeholder]  = input_batch
-
         # only in train mode will we have labels provided
         if label_batch is not None:
             feed_dict[self.labels_placeholder] = label_batch
+        
         return feed_dict
 
     def add_model(self, input_data):
         """Implements core of model that transforms input_data into predictions.
-
         The core transformation for this model which transforms a batch of input
         data into a batch of predictions.
 
-        Args:
-          input_data: A tensor of shape (batch_size, n_features).
-        Returns:
-          out: A tensor of shape (batch_size, n_classes)
+        Args: input_data: A tensor of shape (batch_size, n_features).
+        Returns: out: A tensor of shape (batch_size, n_classes)
         """
         pass
 
 
     def add_loss_op(self, pred):
         """Adds ops for loss to the computational graph.
-
-        Args:
-          pred: A tensor of shape (batch_size, n_classes)
-        Returns:
-          loss: A 0-d tensor (scalar) output
+        Args: pred: A tensor of shape (batch_size, n_classes)
+        Returns: loss: A 0-d tensor (scalar) output
         """
         targets       = [tf.reshape(self.labels_placeholder, [-1])]
         target_labels = tf.reshape(self.labels_placeholder, [self.config.batch_size, self.config.num_steps])
@@ -95,28 +88,22 @@ class S2SMTModel(LanguageModel):
         return loss
     
     def run_epoch(self, session, data, train_op=None, verbose=10):
-        """Runs an epoch of training.
-
-        Trains the model for one-epoch.
-
+        """Runs an epoch of training.  Trains the model for one-epoch.
         Args:
           sess: tf.Session() object
           input_data: np.ndarray of shape (n_samples, n_features)
           input_labels: np.ndarray of shape (n_samples, n_classes)
-        Returns:
-          average_loss: scalar. Average minibatch loss of model on epoch.
+        Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
         pass
     
     def fit(self, sess, input_data, input_labels):
         """Fit model on provided data.
-
         Args:
           sess: tf.Session()
           input_data: np.ndarray of shape (n_samples, n_features)
           input_labels: np.ndarray of shape (n_samples, n_classes)
-        Returns:
-          losses: list of loss per epoch
+        Returns: losses: list of loss per epoch
         """
         raise NotImplementedError("Each Model must re-implement this method.")
 
