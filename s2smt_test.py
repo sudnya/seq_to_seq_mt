@@ -22,10 +22,10 @@ def test_S2SMTModel():
     trans_config.batch_size = trans_config.num_steps = 1
 
     # Create model for training
-    with tf.variable_scope('RNNLM', reuse=None) as scope:
+    with tf.variable_scope('S2SMT', reuse=None) as scope:
         model = S2SMTModel(config)
     # Create translate_model to use the same parameters as training result
-    with tf.variable_scope('RNNLM', reuse=True) as scope:
+    with tf.variable_scope('S2SMT', reuse=True) as scope:
         translate_model = S2SMTModel(trans_config)
 
     init = tf.initialize_all_variables()
@@ -112,10 +112,10 @@ def test_add_model():
     return output
 
 def run_tests():
-    test_add_model()
+    #test_add_model()
     # model, temp = test_encoder()
     # test_decoder(model, temp)
-    # test_S2SMTModel()
+    test_S2SMTModel()
 
 
 def main():
