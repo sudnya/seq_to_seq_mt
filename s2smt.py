@@ -86,7 +86,7 @@ class S2SMTModel(LanguageModel):
         train_op = optimizer.minimize(loss)
         return train_op
 
-    def create_feed_dict(self, en_batch, de_batch):
+    def create_feed_dict(self, en_batch, de_batch, dp):
         """
             @en_batch       (config.np_raw_dtype)     numpy [batch_size x seq_len]
             @de_batch   (config.np_raw_dtype)     numpy [batch_size x seq_len]
@@ -97,7 +97,7 @@ class S2SMTModel(LanguageModel):
         # only in train mode will we have decoded batches
         if de_batch is not None:
             feed_dict[self.de_placeholder] = de_batch
-            feed_dict[self.dropout_placeholder] = self.config.dropout
+            feed_dict[self.dropout_placeholder] = dp
         return feed_dict
 
     def add_model(self):
@@ -117,14 +117,14 @@ class S2SMTModel(LanguageModel):
         # pred_logits should be Tensor[batch_size x seq_len x de_vocab_size]
         pred_logits = tf.stack(pred_logits, axis=1)
 
+        self.softmax_prob = tf.nn.softmax(pred_logits)
+
         # targets should be Tensor[batch_size x seq_len]
         targets = self.de_placeholder
 
         weights = tf.ones([self.config.batch_size, self.config.seq_len])
 
         loss = sequence_loss(logits=pred_logits, targets=targets, weights=weights)
-
-        self.last_softmax = tf.nn.softmax(pred_logits)
 
         tf.add_to_collection('total_loss', loss)
 
@@ -145,20 +145,14 @@ class S2SMTModel(LanguageModel):
             train_op = tf.no_op()
             dp = 1.0
 
-        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.seq_len, config.np_raw_dtype))
+        total_steps = sum(1 for x in data_iterator(config, en_data, de_data))
 
         total_loss = []
 
-        for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.seq_len, config.np_raw_dtype)):
+        for step, (en_batch, de_batch) in enumerate(data_iterator(config, en_data, de_data)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
-
-            feed = {
-                self.en_placeholder: en_batch,
-                self.de_placeholder: de_batch,
-                self.dropout_placeholder: dp
-            }
-
+            feed = self.create_feed_dict(en_batch, de_batch, dp)
             loss, _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
 
@@ -168,7 +162,7 @@ class S2SMTModel(LanguageModel):
 
         if verbose:
             sys.stdout.write('\r')
-        
+
         print "total loss ", total_loss
         return np.exp(np.mean(total_loss))
 
@@ -195,7 +189,7 @@ class S2SMTModel(LanguageModel):
         # return losses
         pass
 
-    def predict(self, session, en_data, y=None):
+    def predict(self, session, en_data):
         """Make predictions from the provided model.
         Args:
           sess: tf.Session()
@@ -205,6 +199,22 @@ class S2SMTModel(LanguageModel):
           average_loss: Average loss of model.
           predictions: Predictions of model on input_data
         """
+        print '\n\nTEST\n\n'
+        predictions = []
+        batch_size = self.config.batch_size
+        self.config.batch_size = 1
+        for i, (en_batch, _) in enumerate(data_iterator(self.config, en_data)):
+            feed = self.create_feed_dict(en_batch)
+            loss, _ = session.run([self.calculate_loss], feed_dict=feed)
+            x = session.run(self.softmax_prob)
+            print 'SOFT MAX', x
+            # np.argmax(x)
+            # predictions
+
+        self.config.batch_size = batch_size
+        return loss, predictions
+
+
         # config = self.config
         # # We deactivate dropout by setting it to 1
         # dp = 1
@@ -252,7 +262,7 @@ def translate_text(session, model, config, starting_text='<eos>',
     Returns:
       output: List of word idxs
     """
-    state = model.initial_state.eval()
+
     # Imagine tokens as a batch size of one, length of len(tokens[0])
     tokens = [model.vocab.encode(word) for word in starting_text.split()]
 

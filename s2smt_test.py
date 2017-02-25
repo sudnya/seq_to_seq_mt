@@ -66,6 +66,7 @@ def test_S2SMTModel():
         print '*** Translator test perplexity: {} ***'.format(test_pp)
         print '\n=================================================\n'
 
+        model.predict(session, [[1,2,3,4,4], [1,2,3,4]])
         #run_translator(session, translate_model, trans_config)
 
 

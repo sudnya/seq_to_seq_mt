@@ -1,6 +1,7 @@
 import argparse
 import logging
 import random
+from config import Config
 
 import numpy as np
 
@@ -18,7 +19,13 @@ def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
     return ret_data
 
 
-def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, seq_len, dtype=np.int32):
+def data_iterator(config, en_data, de_data = None):
+
+    batch_size = config.batch_size
+    en_pad_token = config.en_pad_token
+    de_pad_token = config.de_pad_token
+    seq_len = config.seq_len
+    dtype = config.np_raw_dtype
 
     if de_data == None:
         # predict mode, no refs here
@@ -72,7 +79,9 @@ def main():
     en_pad_token = -888
     de_pad_token = -555
 
-    for i, (enc, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, 128)):
+
+    config = Config()
+    for i, (enc, pred_dec) in enumerate(data_iterator(config, X_test, Y_test)):
         print "enc \n", enc, " --- \n pred dec\n", pred_dec
 
 
