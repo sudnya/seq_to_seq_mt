@@ -68,8 +68,7 @@ class S2SMTModel(LanguageModel):
 
     def add_placeholders(self):
         self.en_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='en_placeholder')
-        self.de_ref_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_ref_placeholder')
-        self.de_pred_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_pred_placeholder')
+        self.de_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_placeholder')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
     def add_embedding(self):
@@ -100,10 +99,9 @@ class S2SMTModel(LanguageModel):
         """
         feed_dict = {}
         feed_dict[self.en_placeholder] = en_batch
-        feed_dict[self.de_ref_placeholder] = de_ref_batch
         # only in train mode will we have decoded batches
         if de_pred_batch is not None:
-            feed_dict[self.de_pred_placeholder] = de_pred_batch
+            feed_dict[self.de_placeholder] = de_batch
             feed_dict[self.dropout_placeholder] = self.config.dropout
         return feed_dict
 
@@ -115,7 +113,7 @@ class S2SMTModel(LanguageModel):
             embed = self.add_embedding()
             en_output, en_final_state = self.add_encoding(embed)
             # TODO add Attention
-            de_output = self.add_decoding(en_final_state, self.de_ref_placeholder)
+            de_output = self.add_decoding(en_final_state, self.de_placeholder)
 
 
         return de_output
