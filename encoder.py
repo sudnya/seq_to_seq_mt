@@ -45,13 +45,17 @@ def _add_encoding_layer(model, inputs, initial_state, layer):
 
     with tf.variable_scope('EncodingLayer' + str(layer)):
 
-        cell = LSTMCell(config.hidden_size)
+        cell = LSTMCell(num_units=config.hidden_size)
         state = cell.zero_state(config.batch_size, dtype=config.dtype)
 
         for step in xrange(config.en_num_steps):
-            #print inputs[step].get_shape()
-            state = cell(inputs[step], state)
-            output.append(state)
+            print "step", step
+            print "input", inputs[step]
+            print "state", state
+            print "cell", cell
+            print "cell", cell(input[step], state)
+            o, t_state, = cell(inputs[step], state)
+            output.append(t_state)
 
     return (output, state)
 
