@@ -31,6 +31,9 @@ def test_S2SMTModel():
     init = tf.global_variables_initializer()
     saver = tf.train.Saver()
 
+
+    print '\n\n\n TRAINING \n\n\n'
+
     with tf.Session() as session:
         best_val_pp = float('inf')
         best_val_epoch = 0

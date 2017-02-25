@@ -29,9 +29,7 @@ class S2SMTModel(LanguageModel):
         self.load_data(debug=False)
         self.add_placeholders()
         self.outputs = self.add_model()
-
         self.predictions = [tf.nn.softmax(tf.cast(o, 'float64')) for o in self.outputs]
-
         self.calculate_loss = self.add_loss_op(self.outputs)
         self.train_step = self.add_training_op(self.calculate_loss)
 
@@ -86,6 +84,7 @@ class S2SMTModel(LanguageModel):
     def add_training_op(self, loss):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr, beta1=self.config.beta1, beta2=self.config.beta2)
         train_op = optimizer.minimize(loss)
+        return train_op
 
     def create_feed_dict(self, en_batch, de_batch):
         """
