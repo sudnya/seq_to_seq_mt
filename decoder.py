@@ -49,8 +49,6 @@ def add_decoding(model, en_final_state, de_data):
     states = []
     outputs = []
     if train:
-        print config.seq_len
-
         de_data = tf.split(de_data, tf.ones(config.seq_len, dtype=tf.int32), axis = 1)
         de_data = [tf.squeeze(x, axis=1) for x in de_data]
 

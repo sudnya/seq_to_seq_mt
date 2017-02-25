@@ -4,16 +4,15 @@ import random
 
 import numpy as np
 
+
 def max_pad(ret_data, r, sample, max_len, pad_token):
     dlen = min(max_len, len(sample))
-    ret_data[r,:dlen] = sample[:dlen]
+    ret_data[r, :dlen] = sample[:dlen]
     return ret_data
 
+
 def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
-    print 'batch_size', batch_size, 'max_len', max_len
-
-
-    ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
+    ret_data = np.ones([batch_size, max_len], dtype=dtype) * pad_token
     for r, x in enumerate(data_slice):
         max_pad(ret_data, r, x, max_len, pad_token)
     return ret_data
@@ -22,13 +21,9 @@ def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
 def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, seq_len, dtype=np.int32):
 
     if de_data == None:
-        #predict mode, no refs here
+        # predict mode, no refs here
         #logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
-        de_data = [de_pad_token]*len(en_data)
-    # num_samples x ?
-
-    #print len(en_data) , " with first entry ", en_data[0].shape
-    #print len(de_data) , " with first entry ", de_data[0].shape
+        de_data = [de_pad_token] * len(en_data)
 
     assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
@@ -37,19 +32,17 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, seq_
     for batch in range(total_batches):
 
         start = batch * batch_size
-        end   = start + batch_size
+        end = start + batch_size
 
         if seq_len != 0:
             max_len_for_this_batch = seq_len
         else:
-            max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
+            max_len_for_this_batch = en_data[end - 1].shape[0] + 1  # last element in this miniB
 
-        t_en_batch      = padded_mini_b_fixed(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
+        t_en_batch = padded_mini_b_fixed(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
         de_batch = padded_mini_b_fixed(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
 
         yield(t_en_batch, de_batch)
-
-
 
 
 def main():
@@ -68,22 +61,19 @@ def main():
 
     X_test = []
     Y_test = []
-    s_lengths = [int(100*random.random()) for i in xrange(5)]
+    s_lengths = [int(100 * random.random()) for i in xrange(5)]
     s_lengths.sort()
 
     for col in s_lengths:
         X_test.append(np.ones(col))
-        Y_test.append(np.ones(col))#TODO/int(random.random() + 1)))
+        Y_test.append(np.ones(col))  # TODO/int(random.random() + 1)))
 
-
-    batch_size   = 4
+    batch_size = 4
     en_pad_token = -888
     de_pad_token = -555
 
     for i, (enc, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, 128)):
-       print "enc \n", enc , " --- \n pred dec\n", pred_dec
-
-
+        print "enc \n", enc, " --- \n pred dec\n", pred_dec
 
 
 if __name__ == '__main__':
