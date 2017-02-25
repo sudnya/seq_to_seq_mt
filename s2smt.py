@@ -17,8 +17,8 @@ sequence_loss = tf.contrib.seq2seq.sequence_loss
 
 
 def _make_lstm_initial_states(config):
-    return (tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
-            tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype))
+    return tf.tuple([tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
+            tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype)])
 
 
 class S2SMTModel(LanguageModel):
@@ -82,7 +82,7 @@ class S2SMTModel(LanguageModel):
     def add_decoding(self, encoder_final_state, de_ref):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encoder_final_state
-        return add_decoding(self, initial_states, de_ref)
+        return de.add_decoding(self, initial_states, de_ref)
 
     def add_attention(self):
         pass
@@ -112,9 +112,11 @@ class S2SMTModel(LanguageModel):
             @return         (config.dtype)            tensor [batch_size x hidden_size]
         """
         with tf.variable_scope('S2SMT') as scope:
-            en_output, en_final_state = self.add_encoding(self.add_embedding(self.en_placeholder))
+            embed = self.add_embedding()
+            en_output, en_final_state = self.add_encoding(embed)
             # TODO add Attention
             de_output = self.add_decoding(en_final_state, self.de_ref_placeholder)
+
 
         return de_output
 
@@ -136,6 +138,7 @@ class S2SMTModel(LanguageModel):
 
         return loss
 
+
     def run_epoch(self, session, en_data, de_data, train_op=None, verbose=10):
         """Runs an epoch of training.  Trains the model for one-epoch.
         Args:
@@ -145,17 +148,18 @@ class S2SMTModel(LanguageModel):
         Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
         config = self.config
-        dp = config.dropout
+        dp     = config.dropout
 
         if not train_op:
             train_op = tf.no_op()
-            dp = 1.
+            dp = 1.0
 
         total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.start_token, config.np_raw_dtype))
 
         total_loss = []
 
         state = self.initial_state.eval()
+
 
         for step, (en_batch, de_ref_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.start_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
@@ -165,15 +169,16 @@ class S2SMTModel(LanguageModel):
                     self.de_prod_placeholder: de_prod_batch,
                     self.dropout_placeholder: dp}
 
-            loss, state, _ = session.run(
-                [self.calculate_loss, self.final_state, train_op], feed_dict=feed)
+            loss, state, _ = session.run([self.calculate_loss, self.final_state, train_op], feed_dict=feed)
             total_loss.append(loss)
+
             if verbose and step % verbose == 0:
-                sys.stdout.write('\r{} / {} : pp = {}'.format(
-                    step, total_steps, np.exp(np.mean(total_loss))))
+                sys.stdout.write('\r{} / {} : pp = {}'.format(step, total_steps, np.exp(np.mean(total_loss))))
                 sys.stdout.flush()
+
         if verbose:
             sys.stdout.write('\r')
+
         return np.exp(np.mean(total_loss))
 
     def fit(self, session, X, y):
@@ -212,7 +217,7 @@ class S2SMTModel(LanguageModel):
         # We deactivate dropout by setting it to 1
         dp = 1
         losses = []
-        results = []
+        predictions = []
 
         # train or test mode?
         if np.any(y):
@@ -229,7 +234,7 @@ class S2SMTModel(LanguageModel):
             else:  # no loss
                 preds = session.run(self.predictions, feed_dict=feed)
                 predicted_indices = preds.argmax(axis=1)
-                results.extend(predicted_indices)
+                predictions.extend(predicted_indices)
 
         return np.mean(losses), predictions
 

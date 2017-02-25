@@ -50,61 +50,72 @@ def test_S2SMTModel():
             if valid_pp < best_val_pp:
                 best_val_pp = valid_pp
                 best_val_epoch = epoch
-                saver.save(session, './ptb_rnnlm.weights')
+                saver.save(session, './s2smt_en_vi.weights')
             if epoch - best_val_epoch > config.early_stopping:
                 break
             print 'Total time: {}'.format(time.time() - start)
 
-        saver.restore(session, 'ptb_rnnlm.weights')
+        #no need to restore here!
+        #saver.restore(session, 'ptb_rnnlm.weights')
 
         test_pp = model.run_epoch(session, model.en_test, model.de_test)
-        print '=-=' * 5
-        print 'Translator test perplexity: {}'.format(test_pp)
-        print '=-=' * 5
+        print '\n=================================================\n' 
+        print '*** Translator test perplexity: {} ***'.format(test_pp)
+        print '\n=================================================\n' 
 
         run_translator(session, translate_model, trans_config)
 
 
-def test_encoder():
+# def test_encoder():
+#     t_model = S2SMTModel(Config)
+#     t_model.load_data()
+#     #
+#     # ref_num_steps = t_model.config.en_num_steps
+#     # ref_batch_size = t_model.config.batch_size
+#     #
+#     # ref_hidden_size = t_model.config.hidden_size
+#     # ref_layer_size = t_model.config.layers
+#     #
+#     # output = t_model.add_embedding()
+#     #assert len(t_inputs) == ref_num_steps
+#
+#     # 20  x  <unknown> so cannot be verified
+#     # print t_inputs[0].get_shape() , "woooo"
+#     #assert t_inputs[0].get_shape() == (ref_batch_size, ref_hidden_size)
+#
+#     t_rnn_y, f_state = t_model.add_encoding(output)
+#     #assert len(t_rnn_y) == ref_num_steps
+#     #assert len(f_state) == ref_layer_size
+#     return t_model, output
+
+# def test_decoder(t_model, en_output):
+#
+#     #ref_num_steps = t_model.config.de_num_steps
+#     #ref_batch_size = t_model.config.batch_size
+#
+#     #ref_hidden_size = t_model.config.hidden_size
+#     #ref_layer_size = t_model.config.layers
+#
+#     t_inputs = t_model.add_decoding(en_output, t_model.de_ref_placeholder)
+#     #assert len(t_inputs) == ref_num_steps
+#     return t_inputs
+
+def test_add_model():
+
     t_model = S2SMTModel(Config)
     t_model.load_data()
 
-    ref_num_steps = t_model.config.en_num_steps
-    ref_batch_size = t_model.config.batch_size
 
-    ref_hidden_size = t_model.config.hidden_size
-    ref_layer_size = t_model.config.layers
-
-    output = t_model.add_embedding()
-    #assert len(t_inputs) == ref_num_steps
-
-    # 20  x  <unknown> so cannot be verified
-    # print t_inputs[0].get_shape() , "woooo"
-    #assert t_inputs[0].get_shape() == (ref_batch_size, ref_hidden_size)
-
-    #t_rnn_y, f_state = t_model.add_encoding(t_inputs)
-    #assert len(t_rnn_y) == ref_num_steps
-    #assert len(f_state) == ref_layer_size
-    return t_model, output
-
-def test_decoder(t_model, en_output):
-
-    #ref_num_steps = t_model.config.de_num_steps
-    #ref_batch_size = t_model.config.batch_size
-
-    #ref_hidden_size = t_model.config.hidden_size
-    #ref_layer_size = t_model.config.layers
-
-    t_inputs = t_model.add_decoding(en_output, t_model.de_ref_placeholder)
-    #assert len(t_inputs) == ref_num_steps
-    return t_inputs
+    output = t_model.add_model()
 
 
+    return output
 
 def run_tests():
-    model, temp = test_encoder()
-    test_decoder(model, temp)
-    test_S2SMTModel()
+    test_add_model()
+    # model, temp = test_encoder()
+    # test_decoder(model, temp)
+    # test_S2SMTModel()
 
 
 def main():

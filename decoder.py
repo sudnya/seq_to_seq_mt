@@ -25,10 +25,10 @@ def add_step_projection(config, step_input):
         bp = tf.Variable("bp", [config.de_vocab_size], dtype=config.dtype)
         return tf.matmul(step_input, Up) + bp
 
-def add_decoding(model, en_initial_states, de_data):
+def add_decoding(model, en_final_state, de_data):
     """
         @model:                             model
-        @en_initial_states:                 tftuple (2) x batch_size x hidden_size
+        @en_final_state:                 tftuple (2) x batch_size x hidden_size
         @de_data:       (config.dtype)      batch_size x num_steps
         @return:        (config.dtype)      list (num_steps) x batch_size x de_vocab_size
     """
@@ -68,7 +68,7 @@ def add_decoding(model, en_initial_states, de_data):
             cell = model.de_cells[layer]
             if step == 0:
                 if layer == 0:
-                    state = en_initial_states
+                    state = en_final_state
                 else:
                     state = cell.zero_state(config.batch_size)
             else:
