@@ -71,9 +71,6 @@ class S2SMTModel(LanguageModel):
         self.de_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_placeholder')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
-        self.de_num_steps_placeholder = tf.placeholder(dtype=tf.int32, name='de_num_steps')
-        self.en_num_steps_placeholder = tf.placeholder(dtype=tf.int32, name='en_num_steps')
-
     def add_embedding(self):
         return add_embedding(self, self.en_placeholder)
 
