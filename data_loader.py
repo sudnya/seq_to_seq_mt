@@ -149,45 +149,45 @@ class DataLoader():
 
         #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
 
-class Vocab():
+    class Vocab():
 
-    def __init__(self, fileName, name, maxVocabSize):
-        self.maxVocabSize = maxVocabSize
-        self.name = name
-        self.word_to_index = {}
-        self.index_to_word = {}
-        self.word_freq = defaultdict(int)
-        # TODO: do we need this?
-        self.unknown = '<unk>'
-        self.add_word(self.unknown, count=0)
+        def __init__(self, fileName, name, maxVocabSize):
+            self.maxVocabSize = maxVocabSize
+            self.name = name
+            self.word_to_index = {}
+            self.index_to_word = {}
+            self.word_freq = defaultdict(int)
+            # TODO: do we need this?
+            self.unknown = '<unk>'
+            self.add_word(self.unknown, count=0)
 
-        for line in open(fileName):
-            for word in line.split():
-                self.add_word(word)
-        logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
+            for line in open(fileName):
+                for word in line.split():
+                    self.add_word(word)
+            logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
 
-    def add_word(self, word, count=1):
-        if len(self.word_to_index.keys()) >= self.maxVocabSize:
-            logger.debug("Vocab capacity full, not adding new words")
-            return
+        def add_word(self, word, count=1):
+            if len(self.word_to_index.keys()) >= self.maxVocabSize:
+                logger.debug("Vocab capacity full, not adding new words")
+                return
 
-        if word not in self.word_to_index:
-            index = len(self.word_to_index)
-            self.word_to_index[word] = index
-            self.index_to_word[index] = word
-            self.word_freq[word] += count
-            logger.debug("Added " + word)
+            if word not in self.word_to_index:
+                index = len(self.word_to_index)
+                self.word_to_index[word] = index
+                self.index_to_word[index] = word
+                self.word_freq[word] += count
+                logger.debug("Added " + word)
 
-    def encode(self, word):
-        if word not in self.word_to_index:
-            word = self.unknown
-        return self.word_to_index[word]
+        def encode(self, word):
+            if word not in self.word_to_index:
+                word = self.unknown
+            return self.word_to_index[word]
 
-    def decode(self, index):
-        return self.index_to_word[index]
+        def decode(self, index):
+            return self.index_to_word[index]
 
-    def __len__(self):
-        return len(self.word_freq)
+        def __len__(self):
+            return len(self.word_freq)
 
 
 def main():
