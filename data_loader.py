@@ -35,8 +35,8 @@ class DataLoader():
         self.de_vocab_size = len(self.tgt_vocab)
 
         # Train - src, rev_src, target (no need to reverse target)
-        self.src_encoded_train = self.__loadEncodings__(srcTr, dataType, train_samples)
-        logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
+        # self.src_encoded_train = self.__loadEncodings__(srcTr, dataType, train_samples)
+        # logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
 
         self.src_encoded_train_rev = self.__loadReverseEncodings__(srcTr, dataType, train_samples)
         logger.info("reversed source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train_rev)))
@@ -45,8 +45,8 @@ class DataLoader():
         logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
 
         # dev - src, rev_src, target (no need to reverse target)
-        self.src_encoded_dev = self.__loadEncodings__(srcDev, dataType, dev_samples)
-        logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
+        # self.src_encoded_dev = self.__loadEncodings__(srcDev, dataType, dev_samples)
+        # logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
 
         self.src_encoded_dev_rev = self.__loadReverseEncodings__(srcDev, dataType, dev_samples)
         logger.info("reversed source training samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev_rev)))
@@ -54,9 +54,9 @@ class DataLoader():
         self.tgt_encoded_dev = self.__loadEncodings__(tgtDev, dataType, dev_samples)
         logger.info("target dev samples expected: " + str(dev_samples) + " created " + str(len(self.tgt_encoded_dev)))
 
-        # test - src, target - No need to rev test data
-        self.src_encoded_test = self.__loadEncodings__(srcTest, dataType, test_samples)
-        logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
+        # test - src, rev_src, target (no need to reverse target)
+        # self.src_encoded_test = self.__loadEncodings__(srcTest, dataType, test_samples)
+        # logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
 
         self.src_encoded_test_rev = self.__loadReverseEncodings__(srcTest, dataType, test_samples)
         logger.info("reversed test training samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test_rev)))
@@ -149,45 +149,45 @@ class DataLoader():
 
         #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
 
-    class Vocab():
+class Vocab():
 
-        def __init__(self, fileName, name, maxVocabSize):
-            self.maxVocabSize = maxVocabSize
-            self.name = name
-            self.word_to_index = {}
-            self.index_to_word = {}
-            self.word_freq = defaultdict(int)
-            # TODO: do we need this?
-            self.unknown = '<unk>'
-            self.add_word(self.unknown, count=0)
+    def __init__(self, fileName, name, maxVocabSize):
+        self.maxVocabSize = maxVocabSize
+        self.name = name
+        self.word_to_index = {}
+        self.index_to_word = {}
+        self.word_freq = defaultdict(int)
+        # TODO: do we need this?
+        self.unknown = '<unk>'
+        self.add_word(self.unknown, count=0)
 
-            for line in open(fileName):
-                for word in line.split():
-                    self.add_word(word)
-            logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
+        for line in open(fileName):
+            for word in line.split():
+                self.add_word(word)
+        logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
 
-        def add_word(self, word, count=1):
-            if len(self.word_to_index.keys()) >= self.maxVocabSize:
-                logger.debug("Vocab capacity full, not adding new words")
-                return
+    def add_word(self, word, count=1):
+        if len(self.word_to_index.keys()) >= self.maxVocabSize:
+            logger.debug("Vocab capacity full, not adding new words")
+            return
 
-            if word not in self.word_to_index:
-                index = len(self.word_to_index)
-                self.word_to_index[word] = index
-                self.index_to_word[index] = word
-                self.word_freq[word] += count
-                logger.debug("Added " + word)
+        if word not in self.word_to_index:
+            index = len(self.word_to_index)
+            self.word_to_index[word] = index
+            self.index_to_word[index] = word
+            self.word_freq[word] += count
+            logger.debug("Added " + word)
 
-        def encode(self, word):
-            if word not in self.word_to_index:
-                word = self.unknown
-            return self.word_to_index[word]
+    def encode(self, word):
+        if word not in self.word_to_index:
+            word = self.unknown
+        return self.word_to_index[word]
 
-        def decode(self, index):
-            return self.index_to_word[index]
+    def decode(self, index):
+        return self.index_to_word[index]
 
-        def __len__(self):
-            return len(self.word_freq)
+    def __len__(self):
+        return len(self.word_freq)
 
 
 def main():
