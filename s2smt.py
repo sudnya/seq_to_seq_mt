@@ -79,10 +79,10 @@ class S2SMTModel(LanguageModel):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         return add_encoding(self, source, initial_states)
 
-    def add_decoding(self, encoder_final_state, de_ref, de_pred):
+    def add_decoding(self, encoder_final_state, de_ref):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encoder_final_state
-        return add_decoding(self, initial_states, de_ref, de_pred)
+        return add_decoding(self, initial_states, de_ref)
 
     def add_attention(self):
         pass
@@ -114,8 +114,7 @@ class S2SMTModel(LanguageModel):
         with tf.variable_scope('S2SMT') as scope:
             en_output, en_final_state = self.add_encoding(self.add_embedding(self.en_placeholder))
             # TODO add Attention
-
-            de_output = self.add_decoding(en_final_state, self.de_ref_placeholder, self.de_pred_placeholder)
+            de_output = self.add_decoding(en_final_state, self.de_ref_placeholder)
 
         return de_output
 
@@ -177,7 +176,7 @@ class S2SMTModel(LanguageModel):
             sys.stdout.write('\r')
         return np.exp(np.mean(total_loss))
 
-    def fit(self, sess, input_data, input_labels):
+    def fit(self, session, X, y):
         """Fit model on provided data.
         Args:
           sess: tf.Session()
@@ -185,9 +184,21 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: losses: list of loss per epoch
         """
-        pass
+        losses = []
 
-    def predict(self, sess, X, y=None):
+        if np.any(y):
+            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+
+        for step, (x, y) in enumerate(data):
+            feed = self.create_feed_dict(input_batch=x, dropout=dp)
+            if np.any(y):
+                feed[self.labels_placeholder] = y
+                loss, preds = session.run([self.loss, self.predictions], feed_dict=feed)
+                losses.append(loss)
+
+        return losses
+
+    def predict(self, session, en_data, y=None):
         """Make predictions from the provided model.
         Args:
           sess: tf.Session()
@@ -197,6 +208,7 @@ class S2SMTModel(LanguageModel):
           average_loss: Average loss of model.
           predictions: Predictions of model on input_data
         """
+        config = self.config
         # We deactivate dropout by setting it to 1
         dp = 1
         losses = []
@@ -204,9 +216,9 @@ class S2SMTModel(LanguageModel):
 
         # train or test mode?
         if np.any(y):
-            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+            data = data_iterator(X, y, config.batch_size, en_data, de_ref_data)
         else:
-            data = data_iterator(X, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+            data = data_iterator(X, config.batch_size, en_data, de_ref_data)
 
         for step, (x, y) in enumerate(data):
             feed = self.create_feed_dict(input_batch=x, dropout=dp)
