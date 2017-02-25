@@ -13,22 +13,11 @@ def add_embedding(model, inputs):
         @return:        (config.dtype)      list (num_steps) x batch_size x hidden_size
     """
     config = model.config
-    #print "inputs are: ", inputs.get_shape()
-
     with tf.variable_scope('EncodingEmbeddingLayer'):
         w2v = tf.get_variable('w2v', [config.en_vocab_size, config.hidden_size], initializer=xavier_init)
-        #print "w2v ", w2v.get_shape()
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
-        #print "after embed look up ", output.get_shape()
         output = tf.split(output, tf.ones(config.seq_len, dtype=tf.int32), axis=1)
-
-        #print "before sqz ", len(output), " xxxx ", output[0].get_shape()
-        output = map(lambda x : tf.squeeze(x, axis=1), output)
-        #print "after squeezed shape ", len(output) , " --> " , output[0].get_shape()
-
-
-    return output
-
+        return [tf.squeeze(x, axis=1) for x in output]
 
 def _add_encoding_layer(model, inputs, layer):
     """
@@ -42,19 +31,13 @@ def _add_encoding_layer(model, inputs, layer):
     outputs = []
 
     with tf.variable_scope('EncodingLayer' + str(layer)) as scope:
-
         cell = LSTMCell(num_units=config.hidden_size)
         state = cell.zero_state(config.batch_size, dtype=config.dtype)
-
         for step in xrange(config.seq_len):
-
             if step != 0:
                 scope.reuse_variables()
-                
             o, state = cell(inputs[step], state)
             outputs.append(o)
-
-
     return (outputs, state)
 
 

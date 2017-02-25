@@ -159,7 +159,7 @@ class S2SMTModel(LanguageModel):
                 self.de_placeholder: de_batch,
                 self.dropout_placeholder: dp
             }
-            
+
             loss, _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
 
@@ -256,7 +256,7 @@ def translate_text(session, model, config, starting_text='<eos>',
     # Imagine tokens as a batch size of one, length of len(tokens[0])
     tokens = [model.vocab.encode(word) for word in starting_text.split()]
 
-    print tokens
+    # print tokens
 
     # for i in xrange(stop_length):
     #     # YOUR CODE HERE

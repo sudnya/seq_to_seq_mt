@@ -28,7 +28,7 @@ def test_S2SMTModel():
     with tf.variable_scope('S2SMT', reuse=True) as scope:
         translate_model = S2SMTModel(trans_config)
 
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
     saver = tf.train.Saver()
 
     with tf.Session() as session:
