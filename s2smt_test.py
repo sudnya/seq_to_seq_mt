@@ -22,10 +22,10 @@ def test_S2SMTModel():
     trans_config.batch_size = trans_config.num_steps = 1
 
     # Create model for training
-    with tf.variable_scope('RNNLM', reuse=None) as scope:
+    with tf.variable_scope('S2SMT', reuse=None) as scope:
         model = S2SMTModel(config)
     # Create translate_model to use the same parameters as training result
-    with tf.variable_scope('RNNLM', reuse=True) as scope:
+    with tf.variable_scope('S2SMT', reuse=True) as scope:
         translate_model = S2SMTModel(trans_config)
 
     init = tf.initialize_all_variables()
@@ -50,17 +50,18 @@ def test_S2SMTModel():
             if valid_pp < best_val_pp:
                 best_val_pp = valid_pp
                 best_val_epoch = epoch
-                saver.save(session, './ptb_rnnlm.weights')
+                saver.save(session, './s2smt_en_vi.weights')
             if epoch - best_val_epoch > config.early_stopping:
                 break
             print 'Total time: {}'.format(time.time() - start)
 
-        saver.restore(session, 'ptb_rnnlm.weights')
+        #no need to restore here!
+        #saver.restore(session, 'ptb_rnnlm.weights')
 
         test_pp = model.run_epoch(session, model.en_test, model.de_test)
-        print '=-=' * 5
-        print 'Translator test perplexity: {}'.format(test_pp)
-        print '=-=' * 5
+        print '\n=================================================\n' 
+        print '*** Translator test perplexity: {} ***'.format(test_pp)
+        print '\n=================================================\n' 
 
         run_translator(session, translate_model, trans_config)
 
@@ -111,11 +112,10 @@ def test_add_model():
     return output
 
 def run_tests():
-    test_add_model()
+    #test_add_model()
     # model, temp = test_encoder()
     # test_decoder(model, temp)
-    # test_S2SMTModel()
-
+    test_S2SMTModel()
 
 
 def main():
