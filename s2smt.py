@@ -111,7 +111,7 @@ class S2SMTModel(LanguageModel):
             # TODO add Attention
             de_output = self.add_decoding(en_final_state, self.de_placeholder)
 
-
+        print de_output
         return de_output
 
     def add_loss_op(self, pred_logits):

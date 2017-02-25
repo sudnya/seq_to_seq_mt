@@ -50,7 +50,7 @@ def _add_encoding_layer(model, inputs, layer):
 
             if step != 0:
                 scope.reuse_variables()
-            print "in LSTM: inputs for step ", step, " are of shape ", inputs[step].get_shape()
+                
             o, state = cell(inputs[step], state)
             outputs.append(o)
 
