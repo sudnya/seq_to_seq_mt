@@ -115,10 +115,11 @@ class S2SMTModel(LanguageModel):
             @return         (config.dtype)            tensor [batch_size x hidden_size]
         """
         with tf.variable_scope('S2SMT') as scope:
-            en_output, en_final_state = self.add_encoding(self.add_embedding(self.en_placeholder))
+            embed = self.add_embedding()
+            en_output, en_final_state = self.add_encoding(embed)
             # TODO add Attention
 
-            de_output = self.add_decoding(en_final_state, self.de_ref_placeholder)
+            de_output = self.add_decoding((en_output, en_final_state), self.de_ref_placeholder)
 
         return de_output
 
