@@ -25,8 +25,8 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtyp
         de_data = [de_pad_token]*len(en_data)
     # num_samples x ?
 
-    print len(en_data) , " with first entry ", en_data[0].shape
-    print len(de_data) , " with first entry ", de_data[0].shape
+    #print len(en_data) , " with first entry ", en_data[0].shape
+    #print len(de_data) , " with first entry ", de_data[0].shape
 
     assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
@@ -75,8 +75,8 @@ def main():
     en_pad_token = -888
     de_pad_token = -555
 
-    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
-        print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
+    #for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
+    #    print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
 
 
 

@@ -17,14 +17,14 @@ def add_embedding(model, inputs):
 
     with tf.variable_scope('EncodingEmbeddingLayer'):
         w2v = tf.get_variable('w2v', [config.en_vocab_size, config.hidden_size], initializer=xavier_init)
-        print "w2v ", w2v.get_shape()
+        #print "w2v ", w2v.get_shape()
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
-        print "after embed look up ", output.get_shape()
+        #print "after embed look up ", output.get_shape()
         output = tf.split(output, tf.ones(config.en_num_steps, dtype=tf.int32), axis=1)
 
-        print "before sqz ", len(output), " xxxx ", output[0].get_shape()
+        #print "before sqz ", len(output), " xxxx ", output[0].get_shape()
         output = map(lambda x : tf.squeeze(x, axis=1), output)
-        print "after squeezed shape ", len(output) , " --> " , output[0].get_shape()
+        #print "after squeezed shape ", len(output) , " --> " , output[0].get_shape()
 
 
     return output
