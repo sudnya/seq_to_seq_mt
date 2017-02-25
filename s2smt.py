@@ -85,7 +85,7 @@ class S2SMTModel(LanguageModel):
     def add_decoding(self,encoder_final_state, de_ref):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encoder_final_state
-        return de.add_decoding(self, initial_states, de_ref)
+        return add_decoding(self, initial_states, de_ref)
 
     def add_attention(self):
         pass
