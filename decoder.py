@@ -36,7 +36,7 @@ def add_decoding(model, en_final_state, de_data):
     train = config.train
 
     # Initiates the cells
-    if not model.de_cells:
+    if not hasattr(model, "de_cells"):
         model.de_cells = []
         for layer in xrange(config.layers):
             with tf.variable_scope('DecodingLayer' + str(layer)):
@@ -45,9 +45,9 @@ def add_decoding(model, en_final_state, de_data):
     states = []
     outputs = []
     if train:
-        de_data = tf.split(de_data, tf.ones(config.num_steps, dtype=config.dtype), axis = 1)
+        de_data = tf.split(de_data, tf.ones(config.de_num_steps, dtype=tf.int32), axis = 1)
 
-    for step in xrange(config.num_steps):
+    for step in xrange(config.de_num_steps):
         if step == 0:
             output = tf.ones([config.batch_size], dtype=config.dtype) * config.start_token
         else:

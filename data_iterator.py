@@ -17,7 +17,7 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
 
 
 
-def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, start_token, dtype=np.int32):
+def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtype=np.int32):
     
     if de_data == None:
         #predict mode, no refs here
@@ -42,12 +42,7 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, star
         t_en_batch      = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
         t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
         
-        t_de_ref_batch  = np.zeros(shape=(batch_size, max_len_for_this_batch))
-        
-        t_de_ref_batch[:, 1:] = t_de_pred_batch[:, :-1]
-        t_de_ref_batch[:, 0]  = start_token
-
-        yield(t_en_batch, t_de_ref_batch, t_de_pred_batch)
+        yield(t_en_batch, t_de_pred_batch)
     
 
 
@@ -77,11 +72,10 @@ def main():
 
 
     batch_size   = 4
-    start_token  = -999
     en_pad_token = -888
     de_pad_token = -555
 
-    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, start_token)):
+    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
         print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
         
 
