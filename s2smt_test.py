@@ -59,9 +59,9 @@ def test_S2SMTModel():
         #saver.restore(session, 'ptb_rnnlm.weights')
 
         test_pp = model.run_epoch(session, model.en_test, model.de_test)
-        print '\n=================================================\n' 
+        print '\n=================================================\n'
         print '*** Translator test perplexity: {} ***'.format(test_pp)
-        print '\n=================================================\n' 
+        print '\n=================================================\n'
 
         run_translator(session, translate_model, trans_config)
 
@@ -96,7 +96,7 @@ def test_S2SMTModel():
 #     #ref_hidden_size = t_model.config.hidden_size
 #     #ref_layer_size = t_model.config.layers
 #
-#     t_inputs = t_model.add_decoding(en_output, t_model.de_ref_placeholder)
+#     t_inputs = t_model.add_decoding(en_output,)
 #     #assert len(t_inputs) == ref_num_steps
 #     return t_inputs
 

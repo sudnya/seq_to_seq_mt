@@ -18,11 +18,11 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
 
 
 def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtype=np.int32):
-    
+
     if de_data == None:
         #predict mode, no refs here
         logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
-        de_data = [pad_token]*len(en_data)
+        de_data = [de_pad_token]*len(en_data)
     # num_samples x ?
 
     print len(en_data) , " with first entry ", en_data[0].shape
@@ -33,17 +33,17 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtyp
     total_batches = len(en_data) // batch_size
 
     for batch in range(total_batches):
-        
+
         start = batch * batch_size
         end   = start + batch_size
-        
+
         max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
-        
+
         t_en_batch      = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
-        t_de_pred_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
-        
-        yield(t_en_batch, t_de_pred_batch)
-    
+        de_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
+
+        yield(t_en_batch, de_batch)
+
 
 
 
@@ -77,7 +77,7 @@ def main():
 
     for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
         print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
-        
+
 
 
 

@@ -30,11 +30,10 @@ def add_embedding(model, inputs):
     return output
 
 
-def _add_encoding_layer(model, inputs, initial_state, layer):
+def _add_encoding_layer(model, inputs, layer):
     """
         @model:
         @inputs:        (config.dtype)      list (num_steps) of batch_size x hidden_size
-        @initial_state: (config.dtype)      batch_size x hidden_size
         @return:
             output:     (config.dtype)      list (num_steps) of batch_size x hidden_size
             state:      (config.dtype)      final state for this layer batch_size x hidden_size
@@ -59,11 +58,10 @@ def _add_encoding_layer(model, inputs, initial_state, layer):
     return (outputs, state)
 
 
-def add_encoding(model, inputs, initial_states):
+def add_encoding(model, inputs):
     """
         @model:
-        @inputs:        (config.dtype)    list (num_steps) x batch_size x hidden_size
-        @initial_state: (config.dtype)    list (layers) x batch_size x hidden_size
+        @inputs:        (config.dtype)    list (num_steps) x batch_size x hidden_size\
         @return:
             output:     (config.dtype)    list (num_steps) x batch_size x hidden_size
             states:     (config.dtype)    list (layers) x batch_size x hidden_size
@@ -76,6 +74,6 @@ def add_encoding(model, inputs, initial_states):
     #
 
     for layer in xrange(config.layers):
-        output, state = _add_encoding_layer(model, output, initial_states[layer], layer)
+        output, state = _add_encoding_layer(model, output, layer)
 
     return output, state

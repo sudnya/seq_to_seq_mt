@@ -74,14 +74,11 @@ class S2SMTModel(LanguageModel):
     def add_embedding(self):
         return add_embedding(self, self.en_placeholder)
 
-    def add_encoding(self, source):
-        initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
-        return add_encoding(self, source, initial_states)
+    def add_encoding(self, en_data):
+        return add_encoding(self, en_data)
 
-    def add_decoding(self, encoder_final_state, de_ref):
-        initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
-        initial_states[0] = encoder_final_state
-        return add_decoding(self, initial_states, de_ref)
+    def add_decoding(self, encoder_final_state, de_data):
+        return add_decoding(self, encoder_final_state, de_data)
 
     def add_attention(self):
         pass
@@ -90,17 +87,16 @@ class S2SMTModel(LanguageModel):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr, beta1=self.config.beta1, beta2=self.config.beta2)
         train_op = optimizer.minimize(loss)
 
-    def create_feed_dict(self, en_batch, de_ref_batch, de_pred_batch):
+    def create_feed_dict(self, en_batch, de_batch):
         """
             @en_batch       (config.np_raw_dtype)     numpy [batch_size x en_num_steps]
-            @de_ref_batch   (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
-            @de_pred_batch  (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
+            @de_batch   (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
             @return         (dictionary)              feed_dict
         """
         feed_dict = {}
         feed_dict[self.en_placeholder] = en_batch
         # only in train mode will we have decoded batches
-        if de_pred_batch is not None:
+        if de_batch is not None:
             feed_dict[self.de_placeholder] = de_batch
             feed_dict[self.dropout_placeholder] = self.config.dropout
         return feed_dict
@@ -124,7 +120,7 @@ class S2SMTModel(LanguageModel):
         pred_logits = tf.stack(pred_logits, axis=1)
 
         # targets should be Tensor[batch_size x de_num_steps]
-        targets = self.de_pred_placeholder
+        targets = self.de_placeholder
 
         weights = tf.ones([self.config.batch_size, self.config.de_num_steps])
 
@@ -152,18 +148,18 @@ class S2SMTModel(LanguageModel):
             train_op = tf.no_op()
             dp = 1.0
 
-        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.start_token, config.np_raw_dtype))
+        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype))
 
         total_loss = []
 
         state = self.initial_state.eval()
 
 
-        for step, (en_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
+        for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
             feed = {self.en_placeholder: en_batch,
-                    self.de_prod_placeholder: de_prod_batch,
+                    self.de_placeholder: de_batch,
                     self.dropout_placeholder: dp}
 
             loss, state, _ = session.run([self.calculate_loss, self.final_state, train_op], feed_dict=feed)
