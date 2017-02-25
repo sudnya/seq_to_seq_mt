@@ -27,7 +27,7 @@ class Config(object):
     att_hidden_size = 200
 
     # Training Hyper Params
-    max_epochs = 1
+    max_epochs = 3
     early_stopping = 2
     dropout = 0.9
     lr = 0.001
@@ -42,7 +42,7 @@ class Config(object):
 
     # Number of samples to load for training
     # vocab_max_size = 10000
-    vocab_max_size = 1000
+    vocab_max_size = 10000
     # train_samples = 1000000
     train_samples = 100000
     dev_samples = 1000

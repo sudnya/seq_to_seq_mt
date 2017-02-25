@@ -66,7 +66,7 @@ def test_S2SMTModel():
         print '*** Translator test perplexity: {} ***'.format(test_pp)
         print '\n=================================================\n'
 
-        run_translator(session, translate_model, trans_config)
+        #run_translator(session, translate_model, trans_config)
 
 
 # def test_encoder():
