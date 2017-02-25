@@ -10,6 +10,9 @@ def max_pad(ret_data, r, sample, max_len, pad_token):
     return ret_data
 
 def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
+    print 'batch_size', batch_size, 'max_len', max_len
+
+
     ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
     for r, x in enumerate(data_slice):
         max_pad(ret_data, r, x, max_len, pad_token)

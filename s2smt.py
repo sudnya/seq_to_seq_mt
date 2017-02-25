@@ -146,25 +146,19 @@ class S2SMTModel(LanguageModel):
             train_op = tf.no_op()
             dp = 1.0
 
-        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype))
+        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.fixed_seq_len, config.np_raw_dtype))
 
         total_loss = []
 
-        for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
+        for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.fixed_seq_len, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
-            #
-            self.config.en_num_steps = en_batch.shape[1]
-            self.config.de_num_steps = de_batch.shape[1]
 
-            feed = {self.en_placeholder: en_batch,
-                    self.de_placeholder: de_batch,
-                    self.dropout_placeholder: dp,
-                    self.en_num_steps_placeholder: self.config.en_num_steps,
-                    self.de_num_steps_placeholder: self.config.de_num_steps
-                    }
-
-            print en_batch.shape, de_batch.shape
+            feed = {
+                self.en_placeholder: en_batch,
+                self.de_placeholder: de_batch,
+                self.dropout_placeholder: dp
+            }
 
             loss, _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
@@ -236,6 +230,7 @@ class S2SMTModel(LanguageModel):
         #
         # return np.mean(losses), predictions
         pass
+
 
 def translate_text(session, model, config, starting_text='<eos>',
                    stop_length=100, stop_tokens=None, temp=1.0):
