@@ -16,18 +16,16 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
     return ret_data
 
 
-def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
-    ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
-
-    for i in range(batch_size):
-        #one sample
-        sample_len  = data_slice[i].shape[0]
-        #assert sample_len <= max_len, " sample length can never be greater than max length allowed "
-        current_len = min(sample_len, max_len)
-
-        ret_data[i][:sample_len] = data_slice[i][:sample_len]
+def max_pad(ret_data, r, sample, max_len, pad_token):
+    dlen = min(max_len, len(sample))
+    ret_data[r,:dlen] = sample[:dlen]
     return ret_data
 
+def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
+    ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
+    for r, x in enumerate(data_slice):
+        max_pad(ret_data, r, x, max_len, pad_token)
+    return ret_data
 
 
 def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, fixed_seq_len, dtype=np.int32):
@@ -55,8 +53,8 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, fixe
         else:
             max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
 
-        t_en_batch      = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
-        de_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
+        t_en_batch      = padded_mini_b_fixed(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
+        de_batch = padded_mini_b_fixed(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
 
         yield(t_en_batch, de_batch)
 
@@ -91,8 +89,8 @@ def main():
     en_pad_token = -888
     de_pad_token = -555
 
-    #for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
-    #    print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
+    for i, (enc, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, 128)):
+       print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
 
 
 
