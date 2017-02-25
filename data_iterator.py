@@ -90,7 +90,7 @@ def main():
     de_pad_token = -555
 
     for i, (enc, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token, 128)):
-       print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
+       print "enc \n", enc , " --- \n pred dec\n", pred_dec
 
 
 
