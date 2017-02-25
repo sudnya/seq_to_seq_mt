@@ -151,8 +151,6 @@ class S2SMTModel(LanguageModel):
 
         total_loss = []
 
-        state = self.initial_state.eval()
-
 
         for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
@@ -161,7 +159,7 @@ class S2SMTModel(LanguageModel):
                     self.de_placeholder: de_batch,
                     self.dropout_placeholder: dp}
 
-            loss, state, _ = session.run([self.calculate_loss, self.final_state, train_op], feed_dict=feed)
+            loss , _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
 
             if verbose and step % verbose == 0:
