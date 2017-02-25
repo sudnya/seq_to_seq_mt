@@ -168,7 +168,8 @@ class S2SMTModel(LanguageModel):
 
         if verbose:
             sys.stdout.write('\r')
-
+        
+        print "total loss ", total_loss
         return np.exp(np.mean(total_loss))
 
     def fit(self, session, X, y):

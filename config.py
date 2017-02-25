@@ -44,9 +44,9 @@ class Config(object):
     # vocab_max_size = 10000
     vocab_max_size = 1000
     # train_samples = 1000000
-    train_samples = 10000
-    dev_samples = 10
-    test_samples = 10
+    train_samples = 100000
+    dev_samples = 1000
+    test_samples = 100
 
     en_pad_token = '-9999'
     de_pad_token = '-7777'
