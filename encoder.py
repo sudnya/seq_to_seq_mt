@@ -21,9 +21,11 @@ def add_embedding(model, inputs):
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
         #print "after embed look up ", output.get_shape()
         output = tf.split(output, tf.ones(config.en_num_steps, dtype=tf.int32), axis=1)
+
         #print "before sqz ", len(output), " xxxx ", output[0].get_shape()
         output = map(lambda x : tf.squeeze(x, axis=1), output)
         #print "after squuezed shape ", len(output) , " --> " , output[0].get_shape()
+
 
     return output
 
@@ -42,7 +44,10 @@ def _add_encoding_layer(model, inputs, initial_state, layer):
     output = []
 
     with tf.variable_scope('EncodingLayer' + str(layer)):
+
         cell = LSTMCell(config.hidden_size)
+        state = cell.zero_state(config.batch_size, dtype=config.dtype)
+
         for step in xrange(config.en_num_steps):
             #print inputs[step].get_shape()
             state = cell(inputs[step], state)
