@@ -44,15 +44,17 @@ def _add_encoding_layer(model, inputs, initial_state, layer):
 
     with tf.variable_scope('EncodingLayer' + str(layer)) as scope:
 
-        cell = LSTMCell(config.hidden_size)
+        cell = LSTMCell(num_units=config.hidden_size)
         state = cell.zero_state(config.batch_size, dtype=config.dtype)
 
         for step in xrange(config.en_num_steps):
+
             if step != 0:
                 scope.reuse_variables()
             print "in LSTM: inputs for step ", step, " are of shape ", inputs[step].get_shape()
             o, state = cell(inputs[step], state)
             outputs.append(o)
+
 
     return (outputs, state)
 

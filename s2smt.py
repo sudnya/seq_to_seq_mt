@@ -10,8 +10,7 @@ from encoder import add_encoding
 from encoder import add_embedding
 from decoder import add_decoding
 
-from util import calculate_perplexity
-
+# from util import calculate_perplexity
 
 
 sequence_loss = tf.contrib.seq2seq.sequence_loss
@@ -35,8 +34,6 @@ class S2SMTModel(LanguageModel):
 
         self.calculate_loss = self.add_loss_op(self.outputs)
         self.train_step = self.add_training_op(self.calculate_loss)
-
-
 
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
@@ -82,7 +79,7 @@ class S2SMTModel(LanguageModel):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         return add_encoding(self, source, initial_states)
 
-    def add_decoding(self,encoder_final_state, de_ref):
+    def add_decoding(self, encoder_final_state, de_ref):
         initial_states = [_make_lstm_initial_states(self.config) for x in xrange(self.config.layers)]
         initial_states[0] = encoder_final_state
         return add_decoding(self, initial_states, de_ref)
@@ -118,8 +115,8 @@ class S2SMTModel(LanguageModel):
             embed = self.add_embedding()
             en_output, en_final_state = self.add_encoding(embed)
             # TODO add Attention
+            de_output = self.add_decoding(en_final_state, self.de_placeholder)
 
-            de_output = self.add_decoding((en_output, en_final_state), self.de_ref_placeholder)
 
         return de_output
 
@@ -157,9 +154,12 @@ class S2SMTModel(LanguageModel):
             train_op = tf.no_op()
             dp = 1.0
 
-        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.np_raw_dtype))
-        total_loss  = []
-        state       = self.initial_state.eval()
+        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.start_token, config.np_raw_dtype))
+
+        total_loss = []
+
+        state = self.initial_state.eval()
+
 
         for step, (en_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
@@ -177,11 +177,10 @@ class S2SMTModel(LanguageModel):
 
         if verbose:
             sys.stdout.write('\r')
-        
+
         return np.exp(np.mean(total_loss))
 
-
-    def fit(self, sess, X, y):
+    def fit(self, session, X, y):
         """Fit model on provided data.
         Args:
           sess: tf.Session()
@@ -190,21 +189,20 @@ class S2SMTModel(LanguageModel):
         Returns: losses: list of loss per epoch
         """
         losses = []
-        
+
         if np.any(y):
             data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
-        
+
         for step, (x, y) in enumerate(data):
             feed = self.create_feed_dict(input_batch=x, dropout=dp)
             if np.any(y):
                 feed[self.labels_placeholder] = y
-                loss, preds                   = session.run( [self.loss, self.predictions], feed_dict=feed)
+                loss, preds = session.run([self.loss, self.predictions], feed_dict=feed)
                 losses.append(loss)
-        
+
         return losses
 
-
-    def predict(self, sess, X, y=None):
+    def predict(self, session, en_data, y=None):
         """Make predictions from the provided model.
         Args:
           sess: tf.Session()
@@ -214,6 +212,7 @@ class S2SMTModel(LanguageModel):
           average_loss: Average loss of model.
           predictions: Predictions of model on input_data
         """
+        config = self.config
         # We deactivate dropout by setting it to 1
         dp = 1
         losses = []
@@ -221,19 +220,18 @@ class S2SMTModel(LanguageModel):
 
         # train or test mode?
         if np.any(y):
-            data = data_iterator(X, y, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
+            data = data_iterator(X, y, config.batch_size, en_data, de_ref_data)
         else:
-            data = data_iterator(X, batch_size=self.config.batch_size, label_size=self.config.label_size, shuffle=False)
-
+            data = data_iterator(X, config.batch_size, en_data, de_ref_data)
 
         for step, (x, y) in enumerate(data):
             feed = self.create_feed_dict(input_batch=x, dropout=dp)
             if np.any(y):
                 feed[self.labels_placeholder] = y
-                loss, preds                   = session.run( [self.loss, self.predictions], feed_dict=feed)
+                loss, preds = session.run([self.loss, self.predictions], feed_dict=feed)
                 losses.append(loss)
-            else: #no loss
-                preds             = session.run(self.predictions, feed_dict=feed)
+            else:  # no loss
+                preds = session.run(self.predictions, feed_dict=feed)
                 predicted_indices = preds.argmax(axis=1)
                 predictions.extend(predicted_indices)
 
