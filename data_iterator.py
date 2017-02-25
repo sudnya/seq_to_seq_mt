@@ -16,8 +16,21 @@ def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
     return ret_data
 
 
+def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
+    ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
 
-def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtype=np.int32):
+    for i in range(batch_size):
+        #one sample
+        sample_len  = data_slice[i].shape[0]
+        #assert sample_len <= max_len, " sample length can never be greater than max length allowed "
+        current_len = min(sample_len, max_len)
+
+        ret_data[i][:sample_len] = data_slice[i][:sample_len]
+    return ret_data
+
+
+
+def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, fixed_seq_len, dtype=np.int32):
 
     if de_data == None:
         #predict mode, no refs here
@@ -25,8 +38,8 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtyp
         de_data = [de_pad_token]*len(en_data)
     # num_samples x ?
 
-    print len(en_data) , " with first entry ", en_data[0].shape
-    print len(de_data) , " with first entry ", de_data[0].shape
+    #print len(en_data) , " with first entry ", en_data[0].shape
+    #print len(de_data) , " with first entry ", de_data[0].shape
 
     assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
@@ -37,7 +50,10 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtyp
         start = batch * batch_size
         end   = start + batch_size
 
-        max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
+        if fixed_seq_len != 0:
+            max_len_for_this_batch = fixed_seq_len
+        else:
+            max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
 
         t_en_batch      = padded_mini_b(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
         de_batch = padded_mini_b(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
@@ -75,8 +91,8 @@ def main():
     en_pad_token = -888
     de_pad_token = -555
 
-    for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
-        print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
+    #for i, (enc, ref_dec, pred_dec) in enumerate(data_iterator(X_test, Y_test, batch_size, en_pad_token, de_pad_token)):
+    #    print "enc \n", enc , " --- \n ref (shifted) dec\n", ref_dec, " --- \n pred dec\n", pred_dec
 
 
 

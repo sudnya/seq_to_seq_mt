@@ -95,7 +95,7 @@ class DataLoader():
         encoded_train = np.array(encoded_train)
         encoded_train = encoded_train[encoded_order]
 
-        logger.debug("training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
+        #logger.debug("training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
     def __loadReverseEncodings__(self, trFile, dataType, subSamples=10000):
@@ -117,7 +117,7 @@ class DataLoader():
         encoded_train = np.array(encoded_train)
         encoded_train = encoded_train[encoded_order]
 
-        logger.debug("reverse training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
+        #logger.debug("reverse training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
     def plotLengths(self):
@@ -181,7 +181,7 @@ class DataLoader():
 
         def add_word(self, word, count=1):
             if len(self.word_to_index.keys()) >= self.maxVocabSize:
-                logger.debug("Vocab capacity full, not adding new words")
+                #logger.debug("Vocab capacity full, not adding new words")
                 return
 
             if word not in self.word_to_index:
@@ -189,7 +189,7 @@ class DataLoader():
                 self.word_to_index[word] = index
                 self.index_to_word[index] = word
                 self.word_freq[word] += count
-                logger.debug("Added " + word)
+                #logger.debug("Added " + word)
 
         def encode(self, word):
             if word not in self.word_to_index:
