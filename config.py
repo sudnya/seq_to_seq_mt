@@ -51,4 +51,8 @@ class Config(object):
 
     en_pad_token = '-9999'
     de_pad_token = '-7777'
-    start_token  = '-1111'
+    #start_token  = '-1111'
+
+    fixed_seq_len = 128
+
+    
