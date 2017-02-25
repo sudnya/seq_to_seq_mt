@@ -161,11 +161,10 @@ class S2SMTModel(LanguageModel):
         total_loss  = []
         state       = self.initial_state.eval()
 
-        for step, (en_batch, de_ref_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.start_token, config.np_raw_dtype)):
+        for step, (en_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
             feed = {self.en_placeholder: en_batch,
-                    self.de_ref_placeholder: de_ref_batch,
                     self.de_prod_placeholder: de_prod_batch,
                     self.dropout_placeholder: dp}
 

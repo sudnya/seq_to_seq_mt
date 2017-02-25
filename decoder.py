@@ -54,7 +54,7 @@ def _add_decoding_layer(model, inputs, initial_state, layer):
     """
     config = model.config
     state = initial_state
-    print state
+    #print state
     output = []
 
     with tf.variable_scope('DecodingLayer' + str(layer)):
@@ -75,7 +75,7 @@ def add_decoding(model, initial_states, de_ref):
     """
 
     config = model.config
-    print "in", (initial_states)
+    #print "in", (initial_states)
 
     output = __add_embedding__(model, de_ref)
 
