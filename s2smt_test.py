@@ -50,17 +50,18 @@ def test_S2SMTModel():
             if valid_pp < best_val_pp:
                 best_val_pp = valid_pp
                 best_val_epoch = epoch
-                saver.save(session, './ptb_rnnlm.weights')
+                saver.save(session, './s2smt_en_vi.weights')
             if epoch - best_val_epoch > config.early_stopping:
                 break
             print 'Total time: {}'.format(time.time() - start)
 
-        saver.restore(session, 'ptb_rnnlm.weights')
+        #no need to restore here!
+        #saver.restore(session, 'ptb_rnnlm.weights')
 
         test_pp = model.run_epoch(session, model.en_test, model.de_test)
-        print '=-=' * 5
-        print 'Translator test perplexity: {}'.format(test_pp)
-        print '=-=' * 5
+        print '\n=================================================\n' 
+        print '*** Translator test perplexity: {} ***'.format(test_pp)
+        print '\n=================================================\n' 
 
         run_translator(session, translate_model, trans_config)
 
@@ -102,9 +103,9 @@ def test_decoder(t_model, en_output):
 
 
 def run_tests():
-    model, temp = test_encoder()
+    #model, temp = test_encoder()
     #test_decoder(model, temp)
-    #test_S2SMTModel()
+    test_S2SMTModel()
 
 
 def main():

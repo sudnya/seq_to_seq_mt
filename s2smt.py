@@ -141,6 +141,7 @@ class S2SMTModel(LanguageModel):
 
         return loss
 
+
     def run_epoch(self, session, en_data, de_data, train_op=None, verbose=10):
         """Runs an epoch of training.  Trains the model for one-epoch.
         Args:
@@ -150,18 +151,17 @@ class S2SMTModel(LanguageModel):
         Returns: average_loss: scalar. Average minibatch loss of model on epoch.
         """
         config = self.config
-        dp = config.dropout
+        dp     = config.dropout
 
         if not train_op:
             train_op = tf.no_op()
-            dp = 1.
+            dp = 1.0
 
         total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.np_raw_dtype))
-        total_loss = []
+        total_loss  = []
+        state       = self.initial_state.eval()
 
-        state = self.initial_state.eval()
-
-        for step, (en_batch, de_ref_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.np_raw_dtype)):
+        for step, (en_batch, de_ref_batch, de_prod_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.start_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
             feed = {self.en_placeholder: en_batch,
@@ -169,16 +169,18 @@ class S2SMTModel(LanguageModel):
                     self.de_prod_placeholder: de_prod_batch,
                     self.dropout_placeholder: dp}
 
-            loss, state, _ = session.run(
-                [self.calculate_loss, self.final_state, train_op], feed_dict=feed)
+            loss, state, _ = session.run([self.calculate_loss, self.final_state, train_op], feed_dict=feed)
             total_loss.append(loss)
+
             if verbose and step % verbose == 0:
-                sys.stdout.write('\r{} / {} : pp = {}'.format(
-                    step, total_steps, np.exp(np.mean(total_loss))))
+                sys.stdout.write('\r{} / {} : pp = {}'.format(step, total_steps, np.exp(np.mean(total_loss))))
                 sys.stdout.flush()
+
         if verbose:
             sys.stdout.write('\r')
+        
         return np.exp(np.mean(total_loss))
+
 
     def fit(self, sess, X, y):
         """Fit model on provided data.
@@ -216,7 +218,7 @@ class S2SMTModel(LanguageModel):
         # We deactivate dropout by setting it to 1
         dp = 1
         losses = []
-        results = []
+        predictions = []
 
         # train or test mode?
         if np.any(y):
@@ -234,7 +236,7 @@ class S2SMTModel(LanguageModel):
             else: #no loss
                 preds             = session.run(self.predictions, feed_dict=feed)
                 predicted_indices = preds.argmax(axis=1)
-                results.extend(predicted_indices)
+                predictions.extend(predicted_indices)
 
         return np.mean(losses), predictions
 

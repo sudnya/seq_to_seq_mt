@@ -48,3 +48,7 @@ class Config(object):
     train_samples = 10000
     dev_samples = 10
     test_samples = 10
+
+    en_pad_token = '-9999'
+    de_pad_token = '-7777'
+    start_token  = '-1111'
