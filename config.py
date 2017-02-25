@@ -44,7 +44,7 @@ class Config(object):
     # vocab_max_size = 10000
     vocab_max_size = 1000
     # train_samples = 1000000
-    train_samples = 100000
+    train_samples = 1000
     dev_samples = 1000
     test_samples = 100
 
