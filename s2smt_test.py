@@ -104,7 +104,9 @@ def test_add_model():
     t_model = S2SMTModel(Config)
     t_model.load_data()
 
+
     output = t_model.add_model()
+
 
     return output
 
@@ -113,6 +115,7 @@ def run_tests():
     # model, temp = test_encoder()
     # test_decoder(model, temp)
     # test_S2SMTModel()
+
 
 
 def main():

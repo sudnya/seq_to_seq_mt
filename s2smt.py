@@ -18,8 +18,8 @@ sequence_loss = tf.contrib.seq2seq.sequence_loss
 
 
 def _make_lstm_initial_states(config):
-    return (tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
-            tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype))
+    return tf.tuple([tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype),
+            tf.zeros([config.batch_size, config.hidden_size], dtype=config.dtype)])
 
 
 class S2SMTModel(LanguageModel):
