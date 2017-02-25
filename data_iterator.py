@@ -4,18 +4,6 @@ import random
 
 import numpy as np
 
-def padded_mini_b(data_slice, batch_size, max_len, pad_token, dtype):
-    ret_data = np.ones([batch_size, max_len], dtype=dtype)*pad_token
-
-    for i in range(batch_size):
-        #one sample
-        sample_len  = data_slice[i].shape[0]
-        assert sample_len <= max_len, " sample length can never be greater than max length allowed "
-
-        ret_data[i][:sample_len] = data_slice[i][:sample_len]
-    return ret_data
-
-
 def max_pad(ret_data, r, sample, max_len, pad_token):
     dlen = min(max_len, len(sample))
     ret_data[r,:dlen] = sample[:dlen]
