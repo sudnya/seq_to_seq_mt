@@ -21,7 +21,7 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, dtyp
 
     if de_data == None:
         #predict mode, no refs here
-        logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
+        #logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
         de_data = [de_pad_token]*len(en_data)
     # num_samples x ?
 

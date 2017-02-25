@@ -36,33 +36,33 @@ class DataLoader():
 
         # Train - src, rev_src, target (no need to reverse target)
         # self.src_encoded_train = self.__loadEncodings__(srcTr, dataType, train_samples)
-        # logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
+        # #logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
 
         self.src_encoded_train_rev = self.__loadReverseEncodings__(srcTr, dataType, train_samples)
-        logger.info("reversed source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train_rev)))
+        #logger.info("reversed source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train_rev)))
 
         self.tgt_encoded_train = self.__loadEncodings__(tgtTr, dataType, train_samples)
-        logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
+        #logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
 
         # dev - src, rev_src, target (no need to reverse target)
         # self.src_encoded_dev = self.__loadEncodings__(srcDev, dataType, dev_samples)
-        # logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
+        # #logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
 
         self.src_encoded_dev_rev = self.__loadReverseEncodings__(srcDev, dataType, dev_samples)
-        logger.info("reversed source training samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev_rev)))
+        #logger.info("reversed source training samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev_rev)))
 
         self.tgt_encoded_dev = self.__loadEncodings__(tgtDev, dataType, dev_samples)
-        logger.info("target dev samples expected: " + str(dev_samples) + " created " + str(len(self.tgt_encoded_dev)))
+        #logger.info("target dev samples expected: " + str(dev_samples) + " created " + str(len(self.tgt_encoded_dev)))
 
         # test - src, rev_src, target (no need to reverse target)
         # self.src_encoded_test = self.__loadEncodings__(srcTest, dataType, test_samples)
-        # logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
+        # #logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
 
         self.src_encoded_test_rev = self.__loadReverseEncodings__(srcTest, dataType, test_samples)
-        logger.info("reversed test training samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test_rev)))
+        #logger.info("reversed test training samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test_rev)))
 
         self.tgt_encoded_test = self.__loadEncodings__(tgtTest, dataType, test_samples)
-        logger.info("target test samples expected: " + str(test_samples) + " created " + str(len(self.tgt_encoded_test)))
+        #logger.info("target test samples expected: " + str(test_samples) + " created " + str(len(self.tgt_encoded_test)))
 
     def __initializeFilenames__(self, src, tgt):
         srcVocab = "data/vocab." + src + ".txt"
@@ -89,10 +89,9 @@ class DataLoader():
 
                 totalSamples += 1
         # logger.debug(encoded_train)
-        # logger.info(encoded_train[0])
+        # #logger.info(encoded_train[0])
 
         encoded_order = np.argsort(encoded_order)
-        print encoded_order
         encoded_train = np.array(encoded_train)
         encoded_train = encoded_train[encoded_order]
 
@@ -113,7 +112,7 @@ class DataLoader():
                 totalSamples += 1
                 encoded_order.append(len(words))
         # logger.debug(encoded_train)
-        # logger.info(encoded_train[0])
+        # #logger.info(encoded_train[0])
         encoded_order = np.argsort(encoded_order)
         encoded_train = np.array(encoded_train)
         encoded_train = encoded_train[encoded_order]
@@ -126,9 +125,9 @@ class DataLoader():
 
         #plt.hist(z, bins=400)
         #plt.title("Gaussian Histogram")
-        #plt.xlabel("Value")
-        #plt.ylabel("Frequency")
-        #plt.show()
+        # plt.xlabel("Value")
+        # plt.ylabel("Frequency")
+        # plt.show()
 
     def getStats(self):
         srcTr = {}
@@ -140,9 +139,9 @@ class DataLoader():
                 srcTr[lenX] = 1
             else:
                 srcTr[lenX] += 1
-        logger.info("Source train stats")
-        for k, v in srcTr.iteritems():
-            logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
+        #logger.info("Source train stats")
+        # for k, v in srcTr.iteritems():
+            #logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
 
         for sample in range(len(self.tgt_encoded_train)):
             lenX = self.tgt_encoded_train[sample].shape[0]
@@ -150,18 +149,18 @@ class DataLoader():
                 tgtTr[lenX] = 1
             else:
                 tgtTr[lenX] += 1
-        logger.info("Source train stats")
-        for k, v in tgtTr.iteritems():
-            logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
+        #logger.info("Source train stats")
+        # for k, v in tgtTr.iteritems():
+            #logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
 
-        # plt.hist(tgtTr)
-        # plt.title("Histogram")
-        # plt.xlabel("Value")
-        # plt.ylabel("Frequency")
+            # plt.hist(tgtTr)
+            # plt.title("Histogram")
+            # plt.xlabel("Value")
+            # plt.ylabel("Frequency")
 
-        #fig = plt.gcf()
+            #fig = plt.gcf()
 
-        #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
+            #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
 
     class Vocab():
 
@@ -178,7 +177,7 @@ class DataLoader():
             for line in open(fileName):
                 for word in line.split():
                     self.add_word(word)
-            logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
+            #logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
 
         def add_word(self, word, count=1):
             if len(self.word_to_index.keys()) >= self.maxVocabSize:
@@ -227,7 +226,7 @@ def main():
     viTest = "data/tst2013.vi.txt"
     enTest = "data/tst2013.en.txt"
 
-    logger.info("Source " + viVocab + " target " + enVocab)
+    #logger.info("Source " + viVocab + " target " + enVocab)
     cfg = Config()
     d = DataLoader(cfg)
     # d.getStats()
