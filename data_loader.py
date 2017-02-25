@@ -78,22 +78,31 @@ class DataLoader():
     def __loadEncodings__(self, trFile, dataType, subSamples=1000):
         totalSamples = 0
         encoded_train = []
+        encoded_order = []
         for line in open(trFile):
             if totalSamples >= subSamples:
                 break
             else:
                 words = line.split()
                 encoded_train.append(np.array([self.src_vocab.encode(word) for word in words], dtype=dataType))
+                encoded_order.append(len(words))
 
                 totalSamples += 1
         # logger.debug(encoded_train)
         # logger.info(encoded_train[0])
+
+        encoded_order = np.argsort(encoded_order)
+        print encoded_order
+        encoded_train = np.array(encoded_train)
+        encoded_train = encoded_train[encoded_order]
+
         logger.debug("training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
     def __loadReverseEncodings__(self, trFile, dataType, subSamples=10000):
         totalSamples = 0
         encoded_train = []
+        encoded_order = []
         for line in open(trFile):
             if totalSamples >= subSamples:
                 break
@@ -102,8 +111,13 @@ class DataLoader():
                 words.reverse()
                 encoded_train.append(np.array([self.src_vocab.encode(word) for word in words], dtype=dataType))
                 totalSamples += 1
+                encoded_order.append(len(words))
         # logger.debug(encoded_train)
         # logger.info(encoded_train[0])
+        encoded_order = np.argsort(encoded_order)
+        encoded_train = np.array(encoded_train)
+        encoded_train = encoded_train[encoded_order]
+
         logger.debug("reverse training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
