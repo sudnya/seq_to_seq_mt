@@ -70,4 +70,4 @@ def add_encoding(model, inputs, initial_states):
     for layer in xrange(config.layers):
         output, state = _add_encoding_layer(model, output, initial_states[layer], layer)
 
-    return (output, state)
+    return output, state

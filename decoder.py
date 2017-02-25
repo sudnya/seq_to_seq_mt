@@ -4,7 +4,9 @@ LSTMCell = tf.contrib.rnn.BasicLSTMCell
 xavier_init = tf.contrib.layers.xavier_initializer()
 
 
+
 def __add_embedding__(model, inputs, step=False):
+
     """
         @model:
         @inputs:        (int32)             batch_size x num_steps
