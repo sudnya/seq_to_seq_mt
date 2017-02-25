@@ -19,7 +19,7 @@ def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
     return ret_data
 
 
-def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, fixed_seq_len, dtype=np.int32):
+def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, seq_len, dtype=np.int32):
 
     if de_data == None:
         #predict mode, no refs here
@@ -39,8 +39,8 @@ def data_iterator(en_data, de_data, batch_size, en_pad_token, de_pad_token, fixe
         start = batch * batch_size
         end   = start + batch_size
 
-        if fixed_seq_len != 0:
-            max_len_for_this_batch = fixed_seq_len
+        if seq_len != 0:
+            max_len_for_this_batch = seq_len
         else:
             max_len_for_this_batch = en_data[end - 1].shape[0] + 1 #last element in this miniB
 

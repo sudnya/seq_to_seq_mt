@@ -49,12 +49,14 @@ def add_decoding(model, en_final_state, de_data):
     states = []
     outputs = []
     if train:
-        de_data = tf.split(de_data, tf.ones(config.de_num_steps, dtype=tf.int32), axis = 1)
+        print config.seq_len
+
+        de_data = tf.split(de_data, tf.ones(config.seq_len, dtype=tf.int32), axis = 1)
         de_data = [tf.squeeze(x, axis=1) for x in de_data]
 
 
 
-    for step in xrange(config.de_num_steps):
+    for step in xrange(config.seq_len):
         if step == 0:
             output = tf.ones([config.batch_size], dtype=tf.int32) * config.start_token
         else:

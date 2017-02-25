@@ -70,7 +70,7 @@ def test_S2SMTModel():
 #     t_model = S2SMTModel(Config)
 #     t_model.load_data()
 #     #
-#     # ref_num_steps = t_model.config.en_num_steps
+#     # ref_num_steps = t_model.config.seq_len
 #     # ref_batch_size = t_model.config.batch_size
 #     #
 #     # ref_hidden_size = t_model.config.hidden_size
@@ -90,7 +90,7 @@ def test_S2SMTModel():
 
 # def test_decoder(t_model, en_output):
 #
-#     #ref_num_steps = t_model.config.de_num_steps
+#     #ref_num_steps = t_model.config.seq_len
 #     #ref_batch_size = t_model.config.batch_size
 #
 #     #ref_hidden_size = t_model.config.hidden_size

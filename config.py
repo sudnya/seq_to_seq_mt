@@ -15,8 +15,7 @@ class Config(object):
     train = True  # switch off for testing
 
     # change on feeding
-    en_num_steps = 20
-    de_num_steps = 20
+    seq_len = 10
     batch_size = 64
 
     # Fixed for encoder and decoder
@@ -52,7 +51,3 @@ class Config(object):
     en_pad_token = '-9999'
     de_pad_token = '-7777'
     #start_token  = '-1111'
-
-    fixed_seq_len = 128
-
-    

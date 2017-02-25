@@ -89,8 +89,8 @@ class S2SMTModel(LanguageModel):
 
     def create_feed_dict(self, en_batch, de_batch):
         """
-            @en_batch       (config.np_raw_dtype)     numpy [batch_size x en_num_steps]
-            @de_batch   (config.np_raw_dtype)     numpy [batch_size x de_num_steps]
+            @en_batch       (config.np_raw_dtype)     numpy [batch_size x seq_len]
+            @de_batch   (config.np_raw_dtype)     numpy [batch_size x seq_len]
             @return         (dictionary)              feed_dict
         """
         feed_dict = {}
@@ -115,13 +115,13 @@ class S2SMTModel(LanguageModel):
 
     def add_loss_op(self, pred_logits):
         # pred_logits input is list (num_steps) of Tensor[batch_size x de_vocab_size]
-        # pred_logits should be Tensor[batch_size x de_num_steps x de_vocab_size]
+        # pred_logits should be Tensor[batch_size x seq_len x de_vocab_size]
         pred_logits = tf.stack(pred_logits, axis=1)
 
-        # targets should be Tensor[batch_size x de_num_steps]
+        # targets should be Tensor[batch_size x seq_len]
         targets = self.de_placeholder
 
-        weights = tf.ones([self.config.batch_size, self.config.de_num_steps])
+        weights = tf.ones([self.config.batch_size, self.config.seq_len])
 
         loss = sequence_loss(logits=pred_logits, targets=targets, weights=weights)
 
@@ -146,11 +146,11 @@ class S2SMTModel(LanguageModel):
             train_op = tf.no_op()
             dp = 1.0
 
-        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.fixed_seq_len, config.np_raw_dtype))
+        total_steps = sum(1 for x in data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.seq_len, config.np_raw_dtype))
 
         total_loss = []
 
-        for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.fixed_seq_len, config.np_raw_dtype)):
+        for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.seq_len, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
 
@@ -159,7 +159,7 @@ class S2SMTModel(LanguageModel):
                 self.de_placeholder: de_batch,
                 self.dropout_placeholder: dp
             }
-
+            
             loss, _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
 
