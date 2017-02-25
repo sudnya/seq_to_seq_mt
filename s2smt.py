@@ -71,6 +71,9 @@ class S2SMTModel(LanguageModel):
         self.de_placeholder = tf.placeholder(self.config.tf_raw_dtype, shape=[None, None], name='de_placeholder')
         self.dropout_placeholder = tf.placeholder(self.config.dtype, name='dropout')
 
+        self.de_num_steps_placeholder = tf.placeholder(dtype=tf.int32, name='de_num_steps')
+        self.en_num_steps_placeholder = tf.placeholder(dtype=tf.int32, name='en_num_steps')
+
     def add_embedding(self):
         return add_embedding(self, self.en_placeholder)
 
@@ -153,13 +156,18 @@ class S2SMTModel(LanguageModel):
         for step, (en_batch, de_batch) in enumerate(data_iterator(en_data, de_data, config.batch_size, config.en_pad_token, config.de_pad_token, config.np_raw_dtype)):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
-            feed = {self.en_placeholder: en_batch,
-                    self.de_placeholder: de_batch,
-                    self.dropout_placeholder: dp}
-
-            print en_batch.shape, de_batch.shape
+            #
             self.config.en_num_steps = en_batch.shape[1]
             self.config.de_num_steps = de_batch.shape[1]
+
+            feed = {self.en_placeholder: en_batch,
+                    self.de_placeholder: de_batch,
+                    self.dropout_placeholder: dp,
+                    self.en_num_steps_placeholder: self.config.en_num_steps,
+                    self.de_num_steps_placeholder: self.config.de_num_steps
+                    }
+
+            print en_batch.shape, de_batch.shape
 
             loss, _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
