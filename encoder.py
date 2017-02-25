@@ -13,12 +13,17 @@ def add_embedding(model, inputs):
         @return:        (config.dtype)      list (num_steps) x batch_size x hidden_size
     """
     config = model.config
+    #print "inputs are: ", inputs.get_shape()
 
     with tf.variable_scope('EncodingEmbeddingLayer'):
         w2v = tf.get_variable('w2v', [config.en_vocab_size, config.hidden_size], initializer=xavier_init)
+        #print "w2v ", w2v.get_shape()
         output = tf.nn.embedding_lookup(params=w2v, ids=inputs)
+        #print "after embed look up ", output.get_shape()
         output = tf.split(output, tf.ones(config.en_num_steps, dtype=tf.int32), axis=1)
-        output = map(tf.squeeze, output)
+        #print "before sqz ", len(output), " xxxx ", output[0].get_shape()
+        output = map(lambda x : tf.squeeze(x, axis=1), output)
+        #print "after squuezed shape ", len(output) , " --> " , output[0].get_shape()
 
     return output
 
@@ -39,6 +44,7 @@ def _add_encoding_layer(model, inputs, initial_state, layer):
     with tf.variable_scope('EncodingLayer' + str(layer)):
         cell = LSTMCell(config.hidden_size)
         for step in xrange(config.en_num_steps):
+            #print inputs[step].get_shape()
             state = cell(inputs[step], state)
             output.append(state)
 

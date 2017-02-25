@@ -76,15 +76,15 @@ def test_encoder():
     ref_layer_size = t_model.config.layers
 
     output = t_model.add_embedding()
-    #assert len(t_inputs) == ref_num_steps
+    assert len(t_inputs) == ref_num_steps
 
     # 20  x  <unknown> so cannot be verified
     # print t_inputs[0].get_shape() , "woooo"
     #assert t_inputs[0].get_shape() == (ref_batch_size, ref_hidden_size)
 
-    #t_rnn_y, f_state = t_model.add_encoding(t_inputs)
-    #assert len(t_rnn_y) == ref_num_steps
-    #assert len(f_state) == ref_layer_size
+    t_rnn_y, f_state = t_model.add_encoding(t_inputs)
+    assert len(t_rnn_y) == ref_num_steps
+    assert len(f_state) == ref_layer_size
     return t_model, output
 
 def test_decoder(t_model, en_output):
@@ -96,15 +96,15 @@ def test_decoder(t_model, en_output):
     #ref_layer_size = t_model.config.layers
 
     t_inputs = t_model.add_decoding(en_output, t_model.de_ref_placeholder)
-    #assert len(t_inputs) == ref_num_steps
+    assert len(t_inputs) == ref_num_steps
     return t_inputs
 
 
 
 def run_tests():
     model, temp = test_encoder()
-    test_decoder(model, temp)
-    test_S2SMTModel()
+    #test_decoder(model, temp)
+    #test_S2SMTModel()
 
 
 def main():
