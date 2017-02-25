@@ -4,7 +4,9 @@ LSTMCell = tf.contrib.rnn.BasicLSTMCell
 xavier_init = tf.contrib.layers.xavier_initializer()
 
 
-def __add_embedding(model, inputs, step=False):
+
+def __add_embedding__(model, inputs, step=False):
+
     """
         @model:
         @inputs:        (int32)             batch_size x num_steps
@@ -75,7 +77,7 @@ def add_decoding(model, initial_states, de_ref):
     config = model.config
     print "in", (initial_states)
 
-    output = add_embedding(model, de_ref)
+    output = __add_embedding__(model, de_ref)
 
 
     for layer in xrange(config.layers):
