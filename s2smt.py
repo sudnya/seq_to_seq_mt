@@ -204,6 +204,7 @@ class S2SMTModel(LanguageModel):
         batch_size = self.config.batch_size
         self.config.batch_size = 1
         for i, (en_batch, _) in enumerate(data_iterator(self.config, en_data)):
+            print "iterator returns " , en_batch
             feed = self.create_feed_dict(en_batch)
             loss, _ = session.run([self.calculate_loss], feed_dict=feed)
             x = session.run(self.softmax_prob)
@@ -239,7 +240,7 @@ class S2SMTModel(LanguageModel):
         #         predictions.extend(predicted_indices)
         #
         # return np.mean(losses), predictions
-        pass
+        #pass
 
 
 def translate_text(session, model, config, starting_text='<eos>',

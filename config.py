@@ -27,7 +27,7 @@ class Config(object):
     att_hidden_size = 200
 
     # Training Hyper Params
-    max_epochs = 3
+    max_epochs = 1
     early_stopping = 2
     dropout = 0.9
     lr = 0.001

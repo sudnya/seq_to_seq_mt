@@ -2,6 +2,7 @@ import argparse
 import logging
 import time
 import tensorflow as tf
+import numpy as np
 
 from config import Config
 from s2smt import S2SMTModel
@@ -66,7 +67,9 @@ def test_S2SMTModel():
         print '*** Translator test perplexity: {} ***'.format(test_pp)
         print '\n=================================================\n'
 
-        model.predict(session, [[1,2,3,4,4], [1,2,3,4]])
+        testX = np.array([  70,  156,   99,  525,   67,    0,  538,   26,   16, 325])
+     
+        model.predict(session, [testX])
         #run_translator(session, translate_model, trans_config)
 
 
