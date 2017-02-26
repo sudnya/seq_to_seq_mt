@@ -7,7 +7,7 @@ import numpy as np
 
 
 def max_pad(ret_data, r, sample, max_len, pad_token):
-    print "sample ", sample
+    #print "sample ", sample
     dlen = min(max_len, len(sample))
     ret_data[r, :dlen] = sample[:dlen]
     return ret_data
@@ -15,7 +15,7 @@ def max_pad(ret_data, r, sample, max_len, pad_token):
 
 def padded_mini_b_fixed(data_slice, batch_size, max_len, pad_token, dtype):
     ret_data = np.ones([batch_size, max_len], dtype=dtype) * pad_token
-    print "slice befoer max pad: ", data_slice
+    #print "slice befoer max pad: ", data_slice
     for r, x in enumerate(data_slice):
         #print " and x ", x
         max_pad(ret_data, r, x, max_len, pad_token)
@@ -33,8 +33,13 @@ def data_iterator(config, en_data, de_data = None):
     if de_data == None:
         # predict mode, no refs here
         #logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
-        de_data = [de_pad_token] * len(en_data)
+        de_data = de_pad_token * np.arange(len(en_data), seq_len)
         #print "created in predict y of len ", len(de_data)
+        t_en_batch = padded_mini_b_fixed(en_data, batch_size, seq_len, en_pad_token, dtype)
+        #print "encoder batch is fine"
+        #de_batch = padded_mini_b_fixed(de_data, batch_size, seq_len, de_pad_token, dtype)
+        yield(t_en_batch, t_en_batch)
+
 
     assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
