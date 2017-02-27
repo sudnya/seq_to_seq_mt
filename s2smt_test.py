@@ -17,6 +17,27 @@ def run_translator(session, translate_model, trans_config):
         en_text = raw_input('> ')
 
 
+def print_predictions(X, Y, predictions, srcVocab, tgtVocab):
+    srcStr = ""
+    for i in range(len(X)):
+        srcStr += str(srcVocab.decode(X[i])) + " "
+    
+    print "Source sentence: \n", srcStr
+    tgtStr = ""
+    mini_batches = len(predictions)
+    for i in range(mini_batches):
+        #print "predictions ", str([x[0] for x in predictions[i]])
+        tgtStr += str([tgtVocab.decode(x[0]) for x in predictions[i]])
+        #for x in predictions[i]:
+        #    tgtStr += tgtVocab.decode(x[0]) + " "
+    
+    print "\nTranslated to :", tgtStr 
+
+    refStr = ""
+    for i in range(len(Y)):
+        refStr += str(tgtVocab.decode(Y[i])) + " "
+    print "\nReference is :", refStr 
+
 def test_S2SMTModel():
     config = Config()
     trans_config = Config()
@@ -68,10 +89,13 @@ def test_S2SMTModel():
         print '*** Translator test perplexity: {} ***'.format(test_pp)
         print '\n=================================================\n'
 
-        testX = np.array([  70,  156,   99,  525,   67,    0,  538,   26,   16, 325])
-     
-        translate_model.predict(session, [testX])
-        #run_translator(session, translate_model, trans_config)
+        for i in range(50):
+            testX = model.en_test[i]
+            testY = model.de_test[i]
+
+            predictions = translate_model.predict(session, [testX])
+            print_predictions(testX, testY, predictions, translate_model.src_vocab, translate_model.tgt_vocab)
+            #run_translator(session, translate_model, trans_config)
 
 
 # def test_encoder():

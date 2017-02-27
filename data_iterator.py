@@ -28,36 +28,31 @@ def data_iterator(config, en_data, de_data = None):
 
     if de_data == None:
         # predict mode, no refs here
-        #logger.info("decoder data is None, which means we are in predict mode, so no references. creating fake de_data for decoder")
-
         de_data = de_pad_token * np.arange(len(en_data), seq_len)
         #print "created in predict y of len ", len(de_data)
         t_en_batch = padded_mini_b_fixed(en_data, batch_size, seq_len, en_pad_token, dtype)
-        #print "encoder batch is fine"
-        #de_batch = padded_mini_b_fixed(de_data, batch_size, seq_len, de_pad_token, dtype)
         yield(t_en_batch, t_en_batch)
 
 
-    assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
+    else: #train mode
+        assert len(en_data) == len(de_data), 'encoder data length does not match decoder data length'
 
-    total_batches = len(en_data) // batch_size
+        total_batches = len(en_data) // batch_size
 
-    for batch in range(total_batches):
+        for batch in range(total_batches):
 
-        start = batch * batch_size
-        end = start + batch_size
+            start = batch * batch_size
+            end = start + batch_size
 
-        if seq_len != 0:
-            max_len_for_this_batch = seq_len
-        else:
-            max_len_for_this_batch = en_data[end - 1].shape[0] + 1  # last element in this miniB
+            if seq_len != 0:
+                max_len_for_this_batch = seq_len
+            else:
+                max_len_for_this_batch = en_data[end - 1].shape[0] + 1  # last element in this miniB
 
-        t_en_batch = padded_mini_b_fixed(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
-        #print "encoder batch is fine"
-        de_batch = padded_mini_b_fixed(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
+            t_en_batch = padded_mini_b_fixed(en_data[start:end], batch_size, max_len_for_this_batch, en_pad_token, dtype)
+            de_batch = padded_mini_b_fixed(de_data[start:end], batch_size, max_len_for_this_batch, de_pad_token, dtype)
 
-        #print "yielding ", t_en_batch, "\n and \n", de_batch
-        yield(t_en_batch, de_batch)
+            yield(t_en_batch, de_batch)
 
 
 def main():
