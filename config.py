@@ -15,22 +15,22 @@ class Config(object):
     train = True  # switch off for testing
 
     # change on feeding
-    seq_len = 10
-    batch_size = 64
+    seq_len = 20
+    batch_size = 16
 
     # Fixed for encoder and decoder
     # embed_size is the same as hidden_size for later optimization
-    hidden_size = 100
+    hidden_size = 256
     layers = 1
 
     # Attention
     att_hidden_size = 200
 
     # Training Hyper Params
-    max_epochs = 1
+    max_epochs = 10
     early_stopping = 2
     dropout = 0.9
-    lr = 0.001
+    lr = 0.01
     beta1 = 0.9
     beta2 = 0.999
     l2 = 0.001
@@ -41,11 +41,9 @@ class Config(object):
 
 
     # Number of samples to load for training
-    # vocab_max_size = 10000
-    vocab_max_size = 1000
-    # train_samples = 1000000
-    train_samples = 1000
-    dev_samples = 1000
+    vocab_max_size = 20000
+    train_samples = 16384
+    dev_samples = 1024
     test_samples = 100
 
     # set at train time

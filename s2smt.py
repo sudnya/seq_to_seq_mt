@@ -1,6 +1,7 @@
 import sys
 import tensorflow as tf
 import numpy as np
+import util
 
 
 from data_iterator import data_iterator
@@ -29,8 +30,9 @@ class S2SMTModel(LanguageModel):
         self.load_data(debug=False)
         self.add_placeholders()
         self.outputs = self.add_model()
-        self.predictions = [tf.nn.softmax(tf.cast(o, 'float64')) for o in self.outputs]
+        self.predictions = self.add_predictions_op(self.outputs)
         self.calculate_loss = self.add_loss_op(self.outputs)
+        
         if self.config.train:
             self.train_step = self.add_training_op(self.calculate_loss)
 
@@ -44,6 +46,9 @@ class S2SMTModel(LanguageModel):
         self.de_train = data_loader.tgt_encoded_train
         self.de_dev = data_loader.tgt_encoded_dev
         self.de_test = data_loader.tgt_encoded_test
+
+        self.src_vocab = data_loader.src_vocab
+        self.tgt_vocab = data_loader.tgt_vocab
 
         if debug:
             num_debug = 512
@@ -86,6 +91,17 @@ class S2SMTModel(LanguageModel):
         optimizer = tf.train.AdamOptimizer(learning_rate=self.config.lr, beta1=self.config.beta1, beta2=self.config.beta2)
         train_op = optimizer.minimize(loss)
         return train_op
+
+    def add_predictions_op(self, outputs):
+        if not self.config.train:
+            for i in range(len(outputs)):
+                dim = outputs[i].get_shape()
+                batch_size = int(dim[0])
+                vocab_size = int(dim[1])
+                outputs[i] = tf.slice(outputs[i], begin=[0, 1], size=[batch_size, vocab_size-2])
+                outputs[i] = tf.concat([tf.fill([batch_size, 1], -100000.0), outputs[i], tf.fill([batch_size, 1], -100000.0)], axis=1)
+                #outputs[i] = util.tfdebug(self.config, outputs[i], "Predictions")
+        return [tf.to_int32(tf.argmax(tf.nn.softmax(o), axis=-1)) for o in outputs]
 
     def create_feed_dict(self, en_batch, de_batch=None, dp=None):
         """
@@ -168,7 +184,7 @@ class S2SMTModel(LanguageModel):
         if verbose:
             sys.stdout.write('\r')
 
-        print "total loss ", total_loss
+        #print "total loss ", total_loss
         return np.exp(np.mean(total_loss))
 
     def fit(self, session, X, y):
@@ -179,19 +195,6 @@ class S2SMTModel(LanguageModel):
           input_labels: np.ndarray of shape (n_samples, n_classes)
         Returns: losses: list of loss per epoch
         """
-        # losses = []
-        #
-        # if np.any(y):
-        #     data = data_iterator(X, y, batch_size=self.config.batch_size)
-        #
-        # for step, (x, y) in enumerate(data):
-        #     feed = self.create_feed_dict(input_batch=x, dropout=dp)
-        #     if np.any(y):
-        #         feed[self.labels_placeholder] = y
-        #         loss, preds = session.run([self.loss, self.predictions], feed_dict=feed)
-        #         losses.append(loss)
-        #
-        # return losses
         pass
 
     def predict(self, session, en_data):
@@ -214,44 +217,10 @@ class S2SMTModel(LanguageModel):
             #print "iterator returns " , en_batch
             feed = self.create_feed_dict(en_batch, fake_batch)
             
-            print "self.calculate_loss ", self.calculate_loss
-            print "feed ", feed
-            loss  = session.run([self.calculate_loss], feed_dict=feed)
-
-            x = session.run(self.softmax_prob)
-            print 'SOFT MAX', x
-            # np.argmax(x)
-            # predictions
+            predictions.append(session.run([self.predictions], feed_dict=feed)[0])
 
         self.config.batch_size = batch_size
-        return loss, predictions
-
-
-        # config = self.config
-        # # We deactivate dropout by setting it to 1
-        # dp = 1
-        # losses = []
-        # predictions = []
-        #
-        # # train or test mode?
-        # if np.any(y):
-        #     data = data_iterator(en_data, y, config.batch_size, en_data, de_ref_data)
-        # else:
-        #     data = data_iterator(en_data, config.batch_size, en_data, de_ref_data)
-        #
-        # for step, (x, y) in enumerate(data):
-        #     feed = self.create_feed_dict(input_batch=x, dropout=dp)
-        #     if np.any(y):
-        #         feed[self.labels_placeholder] = y
-        #         loss, preds = session.run([self.loss, self.predictions], feed_dict=feed)
-        #         losses.append(loss)
-        #     else:  # no loss
-        #         preds = session.run(self.predictions, feed_dict=feed)
-        #         predicted_indices = preds.argmax(axis=1)
-        #         predictions.extend(predicted_indices)
-        #
-        # return np.mean(losses), predictions
-        #pass
+        return predictions
 
 
 def translate_text(session, model, config, starting_text='<eos>',
@@ -278,26 +247,6 @@ def translate_text(session, model, config, starting_text='<eos>',
     # Imagine tokens as a batch size of one, length of len(tokens[0])
     tokens = [model.vocab.encode(word) for word in starting_text.split()]
 
-    # print tokens
-
-    # for i in xrange(stop_length):
-    #     # YOUR CODE HERE
-    #
-    #     feed = {
-    #         model.input_placeholder: tokens[i - 1],
-    #         model.initial_state: state,
-    #         model.dropout_placeholder: 1
-    #     }
-    #     loss, y_pred, _ = session.run(
-    #         [model.calculate_loss, model.final_state, tf.no_op()], feed_dict=feed)
-    #
-    #     # END YOUR CODE
-    #     next_word_idx = sample(y_pred[0], temperature=temp)
-    #     tokens.append(next_word_idx)
-    #     if stop_tokens and model.vocab.decode(tokens[-1]) in stop_tokens:
-    #         break
-    # output = [model.vocab.decode(word_idx) for word_idx in tokens]
-    # return output
 
 
 def translate_sentence(session, model, config, en_text='<eos>', stop_length=100, stop_tokens=None, temp=1.0):

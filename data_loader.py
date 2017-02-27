@@ -35,33 +35,33 @@ class DataLoader():
         self.de_vocab_size = len(self.tgt_vocab)
 
         # Train - src, rev_src, target (no need to reverse target)
-        # self.src_encoded_train = self.__loadEncodings__(srcTr, dataType, train_samples)
+        self.src_encoded_train = self.__loadEncodings__(srcTr, self.src_vocab, dataType, train_samples)
         # #logger.info("source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train)))
 
-        self.src_encoded_train_rev = self.__loadReverseEncodings__(srcTr, dataType, train_samples)
+        self.src_encoded_train_rev = self.__loadReverseEncodings__(srcTr, self.src_vocab, dataType, train_samples)
         #logger.info("reversed source training samples expected: " + str(train_samples) + " created " + str(len(self.src_encoded_train_rev)))
 
-        self.tgt_encoded_train = self.__loadEncodings__(tgtTr, dataType, train_samples)
+        self.tgt_encoded_train = self.__loadEncodings__(tgtTr, self.tgt_vocab, dataType, train_samples)
         #logger.info("target training samples expected: " + str(train_samples) + " created " + str(len(self.tgt_encoded_train)))
 
         # dev - src, rev_src, target (no need to reverse target)
-        # self.src_encoded_dev = self.__loadEncodings__(srcDev, dataType, dev_samples)
+        self.src_encoded_dev = self.__loadEncodings__(srcDev, self.src_vocab, dataType, dev_samples)
         # #logger.info("source dev samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev)))
 
-        self.src_encoded_dev_rev = self.__loadReverseEncodings__(srcDev, dataType, dev_samples)
+        self.src_encoded_dev_rev = self.__loadReverseEncodings__(srcDev, self.src_vocab, dataType, dev_samples)
         #logger.info("reversed source training samples expected: " + str(dev_samples) + " created " + str(len(self.src_encoded_dev_rev)))
 
-        self.tgt_encoded_dev = self.__loadEncodings__(tgtDev, dataType, dev_samples)
+        self.tgt_encoded_dev = self.__loadEncodings__(tgtDev, self.tgt_vocab, dataType, dev_samples)
         #logger.info("target dev samples expected: " + str(dev_samples) + " created " + str(len(self.tgt_encoded_dev)))
 
         # test - src, rev_src, target (no need to reverse target)
-        # self.src_encoded_test = self.__loadEncodings__(srcTest, dataType, test_samples)
+        self.src_encoded_test = self.__loadEncodings__(srcTest, self.src_vocab, dataType, test_samples)
         # #logger.info("source test samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test)))
 
-        self.src_encoded_test_rev = self.__loadReverseEncodings__(srcTest, dataType, test_samples)
+        self.src_encoded_test_rev = self.__loadReverseEncodings__(srcTest, self.src_vocab, dataType, test_samples)
         #logger.info("reversed test training samples expected: " + str(test_samples) + " created " + str(len(self.src_encoded_test_rev)))
 
-        self.tgt_encoded_test = self.__loadEncodings__(tgtTest, dataType, test_samples)
+        self.tgt_encoded_test = self.__loadEncodings__(tgtTest, self.tgt_vocab, dataType, test_samples)
         #logger.info("target test samples expected: " + str(test_samples) + " created " + str(len(self.tgt_encoded_test)))
 
     def __initializeFilenames__(self, src, tgt):
@@ -75,7 +75,7 @@ class DataLoader():
         tgtTest = "data/tst2013." + tgt + ".txt"
         return srcVocab, tgtVocab, srcTrain, tgtTrain, srcDev, tgtDev, srcTest, tgtTest
 
-    def __loadEncodings__(self, trFile, dataType, subSamples=1000):
+    def __loadEncodings__(self, trFile, vocab, dataType, subSamples=100000):
         totalSamples = 0
         encoded_train = []
         for line in open(trFile):
@@ -83,7 +83,7 @@ class DataLoader():
                 break
             else:
                 words = line.split()
-                encoded_train.append(np.array([self.src_vocab.encode(word) for word in words], dtype=dataType))
+                encoded_train.append(np.array([vocab.encode(word) for word in words], dtype=dataType))
 
                 totalSamples += 1
         # logger.debug(encoded_train)
@@ -92,7 +92,7 @@ class DataLoader():
         #logger.debug("training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
 
-    def __loadReverseEncodings__(self, trFile, dataType, subSamples=10000):
+    def __loadReverseEncodings__(self, trFile, vocab, dataType, subSamples=100000):
         totalSamples = 0
         encoded_train = []
         for line in open(trFile):
@@ -101,22 +101,13 @@ class DataLoader():
             else:
                 words = line.split()
                 words.reverse()
-                encoded_train.append(np.array([self.src_vocab.encode(word) for word in words], dtype=dataType))
+                encoded_train.append(np.array([vocab.encode(word) for word in words], dtype=dataType))
                 totalSamples += 1
         # logger.debug(encoded_train)
         # #logger.info(encoded_train[0])
 
         #logger.debug("reverse training samples " + str(subSamples) + " matrix size " + str(encoded_train[0].shape))
         return encoded_train
-
-    def plotLengths(self):
-        z = [len(i) for i in self.tgt_encoded_train]
-
-        #plt.hist(z, bins=400)
-        #plt.title("Gaussian Histogram")
-        # plt.xlabel("Value")
-        # plt.ylabel("Frequency")
-        # plt.show()
 
     def getStats(self):
         srcTr = {}
@@ -138,18 +129,8 @@ class DataLoader():
                 tgtTr[lenX] = 1
             else:
                 tgtTr[lenX] += 1
-        #logger.info("Source train stats")
-        # for k, v in tgtTr.iteritems():
-            #logger.info("Sentence of length: " + str(k) + " occurs " + str(v) + " times")
 
-            # plt.hist(tgtTr)
-            # plt.title("Histogram")
-            # plt.xlabel("Value")
-            # plt.ylabel("Frequency")
 
-            #fig = plt.gcf()
-
-            #plot_url = py.plot_mpl(fig, filename='mpl-basic-histogram')
 
     class Vocab():
 
@@ -161,11 +142,11 @@ class DataLoader():
             self.word_freq = defaultdict(int)
             # TODO: do we need this?
             self.unknown = '<unk>'
-            self.add_word(self.unknown, count=0)
+            #self.add_word(self.unknown, count=0)
 
             for line in open(fileName):
                 for word in line.split():
-                    self.add_word(word)
+                    self.add_word(word.strip())
             #logger.info(name + " vocab has " + str(len(self.word_to_index.keys())) + " uniques")
 
         def add_word(self, word, count=1):
