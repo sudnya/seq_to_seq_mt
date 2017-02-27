@@ -1,2 +1,0 @@
-model_checkpoint_path: "s2smt_en_vi.weights"
-all_model_checkpoint_paths: "s2smt_en_vi.weights"
