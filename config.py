@@ -48,6 +48,13 @@ class Config(object):
     dev_samples = 1000
     test_samples = 100
 
-    en_pad_token = '-9999'
-    de_pad_token = '-7777'
-    #start_token  = '-1111'
+    # set at train time
+    en_pad_token = None
+    de_pad_token = None
+    start_token  = None
+
+class PredConfig(Config):
+    """Holds model hyperparams and data information.
+    """
+    # Realtime Adjustable
+    train = False  # switch off for testing
