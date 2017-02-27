@@ -29,7 +29,7 @@ def add_step_projection(config, step_input, step):
         bp = tf.get_variable("bp", [config.de_vocab_size], dtype=config.dtype)
         return tf.matmul(step_input, Up) + bp
 
-def add_decoding(model, en_final_state, de_data):
+def add_decoding(model, en_final_state, de_data=None):
     """
         @model:                             model
         @en_final_state:                 tftuple (2) x batch_size x hidden_size
@@ -63,7 +63,7 @@ def add_decoding(model, en_final_state, de_data):
             else:
                 # find the most likely last output prediction
                 output = outputs[step - 1]
-                output = tf.to_int32(tf.argmax(tf.nn.softmax(output)))
+                output = tf.to_int32(tf.argmax(tf.nn.softmax(output), axis=-1))
 
         next_states = []
 

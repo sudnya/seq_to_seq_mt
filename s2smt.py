@@ -31,7 +31,8 @@ class S2SMTModel(LanguageModel):
         self.outputs = self.add_model()
         self.predictions = [tf.nn.softmax(tf.cast(o, 'float64')) for o in self.outputs]
         self.calculate_loss = self.add_loss_op(self.outputs)
-        self.train_step = self.add_training_op(self.calculate_loss)
+        if self.config.train:
+            self.train_step = self.add_training_op(self.calculate_loss)
 
     def load_data(self, debug=False):
         data_loader = DataLoader(self.config)
@@ -75,7 +76,7 @@ class S2SMTModel(LanguageModel):
     def add_encoding(self, en_data):
         return add_encoding(self, en_data)
 
-    def add_decoding(self, encoder_final_state, de_data):
+    def add_decoding(self, encoder_final_state, de_data=None):
         return add_decoding(self, encoder_final_state, de_data)
 
     def add_attention(self):
@@ -86,7 +87,7 @@ class S2SMTModel(LanguageModel):
         train_op = optimizer.minimize(loss)
         return train_op
 
-    def create_feed_dict(self, en_batch, de_batch, dp):
+    def create_feed_dict(self, en_batch, de_batch=None, dp=None):
         """
             @en_batch       (config.np_raw_dtype)     numpy [batch_size x seq_len]
             @de_batch   (config.np_raw_dtype)     numpy [batch_size x seq_len]
@@ -95,9 +96,8 @@ class S2SMTModel(LanguageModel):
         feed_dict = {}
         feed_dict[self.en_placeholder] = en_batch
         # only in train mode will we have decoded batches
-        if de_batch is not None:
-            feed_dict[self.de_placeholder] = de_batch
-            feed_dict[self.dropout_placeholder] = dp
+        feed_dict[self.de_placeholder] = de_batch
+        feed_dict[self.dropout_placeholder] = dp
         return feed_dict
 
     def add_model(self):
@@ -108,7 +108,11 @@ class S2SMTModel(LanguageModel):
             embed = self.add_embedding()
             en_output, en_final_state = self.add_encoding(embed)
             # TODO add Attention
-            de_output = self.add_decoding(en_final_state, self.de_placeholder)
+            if self.config.train:
+                de_output = self.add_decoding(en_final_state, self.de_placeholder)
+            else:
+                de_output = self.add_decoding(en_final_state)
+
 
         return de_output
 
@@ -153,6 +157,7 @@ class S2SMTModel(LanguageModel):
             # We need to pass in the initial state and retrieve the final state to give
             # the RNN proper history
             feed = self.create_feed_dict(en_batch, de_batch, dp)
+            #print "\n\nfeed dict returns ", feed
             loss, _ = session.run([self.calculate_loss, train_op], feed_dict=feed)
             total_loss.append(loss)
 
@@ -203,10 +208,16 @@ class S2SMTModel(LanguageModel):
         predictions = []
         batch_size = self.config.batch_size
         self.config.batch_size = 1
-        for i, (en_batch, _) in enumerate(data_iterator(self.config, en_data)):
-            print "iterator returns " , en_batch
-            feed = self.create_feed_dict(en_batch)
-            loss, _ = session.run([self.calculate_loss], feed_dict=feed)
+        self.config.train = False
+
+        for i, (en_batch, fake_batch) in enumerate(data_iterator(self.config, en_data)):
+            #print "iterator returns " , en_batch
+            feed = self.create_feed_dict(en_batch, fake_batch)
+            
+            print "self.calculate_loss ", self.calculate_loss
+            print "feed ", feed
+            loss  = session.run([self.calculate_loss], feed_dict=feed)
+
             x = session.run(self.softmax_prob)
             print 'SOFT MAX', x
             # np.argmax(x)

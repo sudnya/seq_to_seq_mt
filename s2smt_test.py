@@ -21,6 +21,7 @@ def test_S2SMTModel():
     config = Config()
     trans_config = Config()
     trans_config.batch_size = trans_config.num_steps = 1
+    trans_config.train = False 
 
     # Create model for training
     with tf.variable_scope('S2SMT', reuse=None) as scope:
@@ -69,7 +70,7 @@ def test_S2SMTModel():
 
         testX = np.array([  70,  156,   99,  525,   67,    0,  538,   26,   16, 325])
      
-        model.predict(session, [testX])
+        translate_model.predict(session, [testX])
         #run_translator(session, translate_model, trans_config)
 
 
